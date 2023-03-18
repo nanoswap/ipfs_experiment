@@ -1,0 +1,9 @@
+// This is the aggregated credit ID, spanning all governments
+// so someone with dual citizenship might have two social security numbers
+// but ideally only one digital credit identity
+
+// ipfs file title: credit_identity value (uuid string)
+message Identity {
+    required IdType id_field_type = 1; // ex: UNITED_STATES_AMERICA_FEDERAL_SOCIAL_SECURITY_NUMBER
+    required string id_field_content = 2; // ex: "123-45-6789"
+}
