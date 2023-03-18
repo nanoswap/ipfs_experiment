@@ -1,5 +1,5 @@
 syntax = "proto3";
-package nanoswap;
+package nanoswap.message;
 
 // This schema is used to find the credit identity for someone based on their goverment issued ID
 

@@ -1,5 +1,5 @@
 syntax = "proto3";
-package nanoswap;
+package nanoswap.message;
 
 // This is the aggregated credit ID, spanning all governments
 // so someone with dual citizenship might have two social security numbers

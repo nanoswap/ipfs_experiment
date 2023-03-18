@@ -1,4 +1,4 @@
-generated/nanoswap
+src/generated/nanoswap
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
