@@ -1,20 +1,21 @@
 syntax = "proto3";
 package nanoswap.enum;
 
-// This is the list of all possible types of goverment issued IDs
+// This is the list of all possible types of goverment issued IDs.
 // (every ID type for every government)
 // The naming syntax (country__level__name) is for readability only,
-// because not every country has the same types of "levels" of issuers
-// so to compare all government issued IDs apples to apples, they are listed flat-ly
-// new IDs can always be added as governments collapse (and are replaced by new governments 
+// because not every country has the same types of "levels" of issuers.
+// So to compare all government issued IDs apples to apples, they are listed flat-ly.
+// New IDs can always be added as governments collapse (and are replaced by new governments 
 // who issue new ID types) or for regulatory changes
+// like when "Real ID" got rolled out in the US.
 
-enum IdType {
-    UNITED_STATES_AMERICA___FEDERAL___SOCIAL_SECURITY_NUMBER = 1;
-    UNITED_STATES_AMERICA___NEW_JERSEY___DRIVERS_LICENSE = 2;
-    UNITED_STATES_AMERICA___NEW_JERSEY___VOTER_ID = 3;
-    UNITED_STATES_AMERICA___PENNSYLVANIA___DRIVERS_LICENSE = 4;
-    UNITED_STATES_AMERICA___PENNSYLVANIA___VOTER_ID = 5;
-    UNITED_STATES_AMERICA___MASSACHUSETTS___DRIVERS_LICENSE = 6;
-    UNITED_STATES_AMERICA___MASSACHUSETTS___VOTER_ID = 7;
+enum Issuer {
+    UNITED_STATES_AMERICA___FEDERAL___SOCIAL_SECURITY_NUMBER = 0;
+    UNITED_STATES_AMERICA___NEW_JERSEY___DRIVERS_LICENSE = 1;
+    UNITED_STATES_AMERICA___NEW_JERSEY___VOTER_ID = 2;
+    UNITED_STATES_AMERICA___PENNSYLVANIA___DRIVERS_LICENSE = 3;
+    UNITED_STATES_AMERICA___PENNSYLVANIA___VOTER_ID = 4;
+    UNITED_STATES_AMERICA___MASSACHUSETTS___DRIVERS_LICENSE = 5;
+    UNITED_STATES_AMERICA___MASSACHUSETTS___VOTER_ID = 6;
 }

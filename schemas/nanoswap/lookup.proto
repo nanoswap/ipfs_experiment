@@ -5,5 +5,5 @@ package nanoswap;
 
 // ipfs file title: <id field type>/<id field content>, ex: "1/123-45-6789" (since 1 is the enum value of UNITED_STATES_AMERICA_FEDERAL_SOCIAL_SECURITY_NUMBER)
 message Lookup {
-    required bytes credit_identity = 1; // uuid of the user
+    bytes credit_identity = 1; // uuid of the user
 }

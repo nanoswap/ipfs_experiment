@@ -9,6 +9,6 @@ import "nanoswap/enum/issuers.proto";
 
 // ipfs file title: credit_identity value (uuid string)
 message Identity {
-    required nanoswap.enum.issuers.IdType id_field_type = 1; // ex: UNITED_STATES_AMERICA_FEDERAL_SOCIAL_SECURITY_NUMBER
-    required string id_field_content = 2; // ex: "123-45-6789"
+    nanoswap.enum.Issuer id_field_type = 1; // ex: UNITED_STATES_AMERICA_FEDERAL_SOCIAL_SECURITY_NUMBER
+    string id_field_content = 2; // ex: "123-45-6789"
 }
