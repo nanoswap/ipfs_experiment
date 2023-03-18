@@ -1,3 +1,6 @@
+syntax = "proto3";
+package nanoswap.enum;
+
 // This is the list of all possible types of goverment issued IDs
 // (every ID type for every government)
 // The naming syntax (country__level__name) is for readability only,
