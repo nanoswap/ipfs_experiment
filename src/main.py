@@ -1,4 +1,3 @@
-import uuid
 from faker import Faker
 
 import nanoswap.enum.issuers_pb2 as issuers_pb2
