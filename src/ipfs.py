@@ -1,6 +1,7 @@
 import subprocess
+from google.protobuf.message import Message
 
-def read(filename, reader):
+def read(filename: str, reader: Message) -> Message:
     print(f"reading: {filename}")
     
     # download the data
@@ -12,7 +13,7 @@ def read(filename, reader):
     reader.ParseFromString(data)
     return reader
 
-def write(filename, data):
+def write(filename: str, data: Message) -> None:
     print(f"writing: {filename}")
 
     # write data to a local file
