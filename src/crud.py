@@ -21,7 +21,6 @@ def write_identity(id_content: str, id_type: int) -> NewCreditIdentity:
         id_content
     )
     ipfs.write(identity.filename, identity.data)
-    print(f"credit id created: {identity.credit_id}")
     return identity
 
 def write_lookup(identity: identity_pb2.Identity, credit_id: uuid.UUID) -> NewLookup:
