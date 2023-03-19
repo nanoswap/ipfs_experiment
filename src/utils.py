@@ -2,8 +2,9 @@ import uuid
 
 import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.lookup_pb2 as lookup_pb2
+from models.return_types import NewCreditIdentity
 
-def new_identity(field_type, field_value):
+def new_identity(field_type, field_value) -> NewCreditIdentity:
     credit_id = uuid.uuid4()
     filename = 'identity.' + str(credit_id)
     data = identity_pb2.Identity(
@@ -11,12 +12,7 @@ def new_identity(field_type, field_value):
         id_field_content = field_value
     )
 
-    # TODO: use pydantic structs instead of dict return types
-    return {
-        "credit_id": credit_id,
-        "filename": filename,
-        "data": data
-    }
+    return NewCreditIdentity(credit_id, filename, data)
 
 def new_lookup(identity, credit_id):
     filename = f"lookup.{identity.id_field_type}.{identity.id_field_content}.{str(credit_id)}"
