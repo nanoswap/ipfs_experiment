@@ -23,9 +23,9 @@ def read_identity(filename: str) -> None:
 
 def write_lookup(data: identity_pb2.Identity, credit_id: uuid.UUID) -> NewLookup:
     # write lookup
-    response = utils.new_lookup(data, credit_id)
-    ipfs.write(response['filename'], response['data'])
-    return response
+    lookup = utils.new_lookup(data, credit_id)
+    ipfs.write(lookup.filename, lookup.data)
+    return lookup
 
 def read_lookup(filename: str) -> None:
     # read lookup
