@@ -2,6 +2,16 @@ import subprocess
 from google.protobuf.message import Message
 
 def read(filename: str, reader: Message) -> Message:
+    """
+    Read a file from ipfs
+
+    Args:
+        filename (str): The file to read
+        reader (Message): The protobuf schema to deserialize the file contents
+
+    Returns:
+        Message: A protobuf object containing the file contents
+    """
     print(f"reading: {filename}")
     
     # download the data
@@ -14,6 +24,14 @@ def read(filename: str, reader: Message) -> Message:
     return reader
 
 def write(filename: str, data: Message) -> None:
+    """
+    Create a new file in ipfs.
+    This does not work for updating existing files.
+
+    Args:
+        filename (str): The filename for the uploaded data
+        data (Message): The protobuf object that will be written to the new file
+    """
     print(f"writing: {filename}")
 
     # write data to a local file
