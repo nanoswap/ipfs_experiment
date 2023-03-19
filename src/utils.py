@@ -11,12 +11,20 @@ def new_identity(field_type, field_value):
         id_field_content = field_value
     )
 
-    # TODO: use pydantic structs instead of tuple return types
-    return credit_id, filename, data
+    # TODO: use pydantic structs instead of dict return types
+    return {
+        "credit_id": credit_id,
+        "filename": filename,
+        "data": data
+    }
 
 def new_lookup(identity, credit_id):
     filename = f"lookup.{identity.id_field_type}.{identity.id_field_content}.{str(credit_id)}"
     data = lookup_pb2.Lookup(
         credit_identity = str(credit_id)
     )
-    return filename, data
+
+    return {
+        "filename": filename,
+        "data": data
+    }
