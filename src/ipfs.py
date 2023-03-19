@@ -13,9 +13,10 @@ def read(filename, reader):
 def write(filename, data):
 
     # write data to a local file
-    filepath = "generated/tmp/" + filename
+    filepath = "src/generated/tmp/" + filename
     with open(filepath, "wb") as f:
-        f.write(data)
+        # serialize the data before writing
+        f.write(data.SerializeToString())
 
     # upload that file
     subprocess.run(["ipfs", "add", filepath, "--to-files", "/data/"], capture_output=True)
