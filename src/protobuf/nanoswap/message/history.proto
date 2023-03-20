@@ -1,8 +1,11 @@
 syntax = "proto3";
 package nanoswap.message;
 
-// TODO
-
+// ipfs file title: credit_identity value (uuid string)
 message History {
-    bytes credit_identity = 1;
+    repeated CreditEvent events = 1;
+}
+
+message CreditEvent {
+    
 }

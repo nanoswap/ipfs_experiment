@@ -1,4 +1,6 @@
 syntax = "proto3";
 package nanoswap.enum;
 
-// TODO
+enum CreditEventType {
+
+}
