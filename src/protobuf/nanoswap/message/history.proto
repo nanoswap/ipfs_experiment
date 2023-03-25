@@ -1,11 +1,16 @@
 syntax = "proto3";
 package nanoswap.message;
 
+import "nanoswap/enum/events.proto";
+
 // ipfs file title: credit_identity value (uuid string)
 message History {
     repeated CreditEvent events = 1;
 }
 
 message CreditEvent {
-    
+    CreditEventType type = 1;
+    string credit_identity = 2; // uuid of the end user
+    Timestamp occurred = 3;
+    bytes publisher_signature = 4;
 }
