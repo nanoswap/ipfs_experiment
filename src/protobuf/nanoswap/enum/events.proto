@@ -2,11 +2,11 @@ syntax = "proto3";
 package nanoswap.enum;
 
 enum CreditEventType {
-    PAYMENT_ON_TIME = 1;
-    MISSED_PAYMENT = 2;
-    LATE_PAYMENT = 3;
-    CREDIT_INQUIRY = 4;
-    LOAN_ISSUED = 5;
-    LOAN_PAID_IN_FULL = 6;
-    LOAN_DEFAULTED = 7;
+    PAYMENT_ON_TIME = 0;
+    MISSED_PAYMENT = 1;
+    LATE_PAYMENT = 2;
+    CREDIT_INQUIRY = 3;
+    LOAN_ISSUED = 4;
+    LOAN_PAID_IN_FULL = 5;
+    LOAN_DEFAULTED = 6;
 }

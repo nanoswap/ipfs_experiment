@@ -1,20 +1,23 @@
 syntax = "proto3";
 package nanoswap.message;
 
+import "google/protobuf/timestamp.proto";
+
 import "nanoswap/enum/chains.proto";
+import "nanoswap/enum/currency.proto";
 import "nanoswap/message/signature.proto";
 
 enum LoanStatus {
-    CREATED = 1;
-    IN_PROGRESS = 2;
-    COMPLETE = 3;
+    CREATED = 0;
+    IN_PROGRESS = 1;
+    COMPLETE = 2;
 }
 
 enum PaymentStatus {
-    DUE = 1;
-    PAID_ON_TIME = 2;
-    PAID_LATE = 3;
-    ABSOLVED = 4;
+    DUE = 0;
+    PAID_ON_TIME = 1;
+    PAID_LATE = 2;
+    ABSOLVED = 3;
 }
 
 message CoSigner {
@@ -28,16 +31,17 @@ message Loan {
     repeated CoSigner cosigners = 3;
     Signature borrower_signature = 4;
     Signature lender_signature = 5;
-    ChainType chain = 6;
-    CurrencyType currency = 7;
-    int amount = 8; // the amount provided to the borrower initially
+    nanoswap.enum.chain.ChainType chain = 6; // the borrowing chain and lending chain must be the same
+    nanoswap.enum.currency.CurrencyType currency = 7; // the borrowing currency and lending currency must be the same
+    int64 amount = 8; // the amount provided to the borrower initially
     LoanStatus status = 9;
     repeated PaymentSchedule payment_schedule = 10;
+    bytes loan_agreement = 11;
 }
 
-message PaymentSchedule = {
-    int amount_due = 1;
-    Timestamp due_date = 2;
+message PaymentSchedule {
+    int64 amount_due = 1;
+    google.protobuf.Timestamp due_date = 2;
     string payment_wallet = 3;
     PaymentStatus status = 4;
 }

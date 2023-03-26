@@ -1,5 +1,5 @@
 syntax = "proto3";
-package nanoswap.enum;
+package nanoswap.enum.currency;
 
 enum CurrencyType {
     XNO = 0;

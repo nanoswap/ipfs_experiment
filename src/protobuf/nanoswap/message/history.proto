@@ -1,6 +1,8 @@
 syntax = "proto3";
 package nanoswap.message;
 
+import "google/protobuf/timestamp.proto";
+
 import "nanoswap/message/signature.proto";
 import "nanoswap/message/loan.proto";
 import "nanoswap/enum/events.proto";
@@ -11,10 +13,10 @@ message History {
 }
 
 message CreditEvent {
-    CreditEventType event_type = 1;
-    string transaction_artifact = 4; // trx ID if the lending platform is completely on-chain
-    string credit_identity = 4; // uuid of the end user
-    Timestamp occurred = 5;
-    Signature publisher_signature = 6; // public key signature from the lending platform
-    Loan loan = 8;
+    nanoswap.enum.CreditEventType event_type = 1;
+    string transaction_artifact = 2; // trx ID if the lending platform is completely on-chain
+    string credit_identity = 3; // uuid of the end user
+    google.protobuf.Timestamp occurred = 4;
+    nanoswap.message.Signature publisher_signature = 5; // public key signature from the lending platform
+    nanoswap.message.Loan loan = 6;
 }
