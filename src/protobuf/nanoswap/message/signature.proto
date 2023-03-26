@@ -1,0 +1,7 @@
+syntax = "proto3";
+package nanoswap.message;
+
+message Signature {
+    Timestamp signature_timestamp = 1;
+    bytes signature = 2;
+}

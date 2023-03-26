@@ -1,6 +1,42 @@
 syntax = "proto3";
 package nanoswap.message;
 
-message Loan {
+import "nanoswap/enum/chains.proto";
+import "nanoswap/message/signature.proto";
 
+enum LoanStatus {
+    CREATED = 1;
+    IN_PROGRESS = 2;
+    COMPLETE = 3;
+}
+
+enum PaymentStatus {
+    DUE = 1;
+    PAID_ON_TIME = 2;
+    PAID_LATE = 3;
+}
+
+message CoSigner {
+    string credit_identity = 1;
+    Signature signature = 2;
+}
+
+message Loan {
+    string borrower_identity = 1; // borrower credit identity uuid
+    string lender_identity = 2; // lender credit identity uuid
+    repeated CoSigner cosigners = 3;
+    Signature borrower_signature = 4;
+    Signature lender_signature = 5;
+    ChainType chain = 6;
+    CurrencyType currency = 7;
+    int amount = 8; // the amount provided to the borrower initially
+    LoanStatus loan_status = 9;
+    repeated PaymentSchedule payment_schedule = 10;
+}
+
+message PaymentSchedule = {
+    int amount_due = 1;
+    Timestamp due_date = 2;
+    string payment_wallet = 3;
+    PaymentStatus status = 4;
 }

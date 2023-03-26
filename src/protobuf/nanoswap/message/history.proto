@@ -1,9 +1,9 @@
 syntax = "proto3";
 package nanoswap.message;
 
+import "nanoswap/message/signature.proto";
 import "nanoswap/message/loan.proto";
 import "nanoswap/enum/events.proto";
-import "nanoswap/enum/chains.proto";
 
 // ipfs file title: credit_identity value (uuid string)
 message History {
@@ -11,17 +11,10 @@ message History {
 }
 
 message CreditEvent {
-    CreditEventType type = 1;
-    ChainType chain = 3; // where the transaction happened
+    CreditEventType event_type = 1;
     string transaction_artifact = 4; // trx ID if the lending platform is completely on-chain
     string credit_identity = 4; // uuid of the end user
     Timestamp occurred = 5;
-    bytes publisher_signature = 6; // public key signature from the lending platform
-    CurrencyType currency = 7;
+    Signature publisher_signature = 6; // public key signature from the lending platform
     Loan loan = 8;
-
-    // fields that might not be used depending on the type of event
-    optional int debt_amount = 9; // for LOAN_ISSUED
-    optional int payment_amount = 10; // for PAYMENT_ON_TIME, LATE_PAYMENT
-    optional int amount_owed = 11; // for LATE_PAYMENT, LOAN_DEFAULTED
 }
