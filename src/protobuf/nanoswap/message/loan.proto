@@ -14,6 +14,7 @@ enum PaymentStatus {
     DUE = 1;
     PAID_ON_TIME = 2;
     PAID_LATE = 3;
+    ABSOLVED = 4;
 }
 
 message CoSigner {
@@ -30,7 +31,7 @@ message Loan {
     ChainType chain = 6;
     CurrencyType currency = 7;
     int amount = 8; // the amount provided to the borrower initially
-    LoanStatus loan_status = 9;
+    LoanStatus status = 9;
     repeated PaymentSchedule payment_schedule = 10;
 }
 
