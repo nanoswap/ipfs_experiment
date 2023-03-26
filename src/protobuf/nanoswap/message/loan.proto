@@ -1,0 +1,6 @@
+syntax = "proto3";
+package nanoswap.message;
+
+message Loan {
+
+}

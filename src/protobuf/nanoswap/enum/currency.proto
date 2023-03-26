@@ -1,0 +1,12 @@
+syntax = "proto3";
+package nanoswap.enum;
+
+enum CurrencyType {
+    XNO = 0;
+    USD = 1;
+    BTC = 2;
+    ETH = 3;
+    FTM = 4;
+    USDC = 5;
+    EUR = 6;
+}
