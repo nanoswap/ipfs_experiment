@@ -9,7 +9,7 @@ import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
 
 import crud
-import loan
+import utils
 
 Faker.seed(0)
 fake = Faker()
@@ -31,23 +31,17 @@ def run():
     print(fake_users)
 
     # create a loan
+    amount = 100
     loan = loan_pb2.Loan(
-        id = uuid.uuid4(),
-        borrower_identity = fake_users[0].id,
-        lender_identity = fake_users[1].id,
+        id = str(uuid.uuid4()),
+        borrower_identity = str(fake_users[0].id),
+        lender_identity = str(fake_users[1].id),
         chain = chains_pb2.OFF_CHAIN,
         currency = currency_pb2.XNO,
-        amount = 100,
+        amount = amount,
         status = loan_pb2.LoanStatus.CREATED,
-
-        cosigners = [],
-        borrower_signature = None,
-        lender_signature = None,
-        payment_schedule = None
+        payment_schedule = utils.create_payment_schedule(amount, 0.05, datetime.timedelta(days=100), "123")
     )
-
-    loan = loan.sign_loan(loan)
-    loan = loan.create_payment_schedule(loan, 0.05, datetime.timedelta(days=100))
 
 if __name__ == "__main__":
     run()
