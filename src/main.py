@@ -43,5 +43,7 @@ def run():
         payment_schedule = utils.create_payment_schedule(amount, 1.05, datetime.timedelta(days=100), 10, "123")
     )
 
+    print(loan)
+
 if __name__ == "__main__":
     run()
