@@ -3,7 +3,7 @@ from google.protobuf.message import Message
 
 IPFS_HOME =  "/data"
 
-def _mkdir(directory_name: str) -> None:
+def mkdir(directory_name: str) -> None:
     """
     Create a directory in ipfs
 
@@ -48,7 +48,7 @@ def write(filename: str, data: Message) -> None:
 
     # upload that file
     subprocess.run(["ipfs", "add", filepath, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
- 
+
     # remove the temporary file
     subprocess.run(["rm", filepath])
 
@@ -66,3 +66,7 @@ def does_file_exist(filename: str) -> bool:
     process = subprocess.run(["ipfs", "files", "stat", f"{IPFS_HOME}/{filename}"], capture_output=True)
     does_not_exist = ( process.returncode == 1 and "file does not exist" in str(process.stderr) )
     return not does_not_exist
+
+def list_files(prefix: str):
+    process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
+    print(process)

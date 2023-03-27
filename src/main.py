@@ -1,15 +1,9 @@
 from faker import Faker
-import datetime
-import uuid
 
 import nanoswap.enum.issuers_pb2 as issuers_pb2
-import nanoswap.enum.chains_pb2 as chains_pb2
-import nanoswap.enum.currency_pb2 as currency_pb2
 import nanoswap.message.identity_pb2 as identity_pb2
-import nanoswap.message.loan_pb2 as loan_pb2
 
 import crud
-import utils
 
 Faker.seed(0)
 fake = Faker()
@@ -28,22 +22,23 @@ def run():
 
     # create fake users
     fake_users = [create_user() for _ in range(10)]
-    print(fake_users)
 
-    # create a loan
-    amount = 100
-    loan = loan_pb2.Loan(
-        id = str(uuid.uuid4()),
-        borrower_identity = str(fake_users[0].id),
-        lender_identity = str(fake_users[1].id),
-        chain = chains_pb2.OFF_CHAIN,
-        currency = currency_pb2.XNO,
-        amount = amount,
-        status = loan_pb2.LoanStatus.CREATED,
-        payment_schedule = utils.create_payment_schedule(amount, 1.05, datetime.timedelta(days=100), 10, "123")
+    # create a loan between two users
+    borrower = fake_users[0].id
+    lender = fake_users[1].id
+    loan = crud.create_loan(
+        borrower = borrower,
+        lender = lender,
+        amount = 100,
+        interest = 1.05,
+        day_count = 10,
+        payment_interval_count = 10
     )
 
-    print(loan)
+    # simulate the borrower making a payment
+
+    # get the loans for the borrower
+    crud.get_loans(borrower)
 
 if __name__ == "__main__":
     run()

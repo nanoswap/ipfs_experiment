@@ -4,7 +4,7 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
 
-def get_filename(identity: identity_pb2.Identity) -> str:
+def get_credit_filename(identity: identity_pb2.Identity) -> str:
     """
     Generate the filename for an identity
 
@@ -15,6 +15,9 @@ def get_filename(identity: identity_pb2.Identity) -> str:
         str: The filename to use in ipfs
     """
     return f"lookup.{identity.id_field_type}.{identity.id_field_content}"
+
+def get_loan_filename(loan_id, borrower, lender):
+    return f"loan.borrower_{borrower}.lender_{lender}.{loan_id}"
 
 def sign_loan(loan):
     loan.borrower_signature = "adsf"

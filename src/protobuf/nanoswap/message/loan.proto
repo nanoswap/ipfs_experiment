@@ -26,7 +26,6 @@ message CoSigner {
 }
 
 message Loan {
-    string id = 1;
     string borrower_identity = 2; // borrower credit identity uuid
     string lender_identity = 3; // lender credit identity uuid
     repeated CoSigner cosigners = 4;
