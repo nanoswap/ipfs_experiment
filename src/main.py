@@ -1,4 +1,6 @@
 from faker import Faker
+import datetime
+import uuid
 
 import nanoswap.enum.issuers_pb2 as issuers_pb2
 import nanoswap.enum.chains_pb2 as chains_pb2
@@ -28,18 +30,24 @@ def run():
     fake_users = [create_user() for _ in range(10)]
     print(fake_users)
 
-    # crate a loan application
+    # create a loan
     loan = loan_pb2.Loan(
+        id = uuid.uuid4(),
         borrower_identity = fake_users[0].id,
         lender_identity = fake_users[1].id,
         chain = chains_pb2.OFF_CHAIN,
         currency = currency_pb2.XNO,
         amount = 100,
-        status = loan_pb2.LoanStatus.CREATED
+        status = loan_pb2.LoanStatus.CREATED,
+
+        cosigners = [],
+        borrower_signature = None,
+        lender_signature = None,
+        payment_schedule = None
     )
 
-    loan.sign_loan()
-    loan.create_payment_schedule()
+    loan = loan.sign_loan(loan)
+    loan = loan.create_payment_schedule(loan, 0.05, datetime.timedelta(days=100))
 
 if __name__ == "__main__":
     run()

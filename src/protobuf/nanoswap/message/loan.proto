@@ -26,17 +26,18 @@ message CoSigner {
 }
 
 message Loan {
-    string borrower_identity = 1; // borrower credit identity uuid
-    string lender_identity = 2; // lender credit identity uuid
-    repeated CoSigner cosigners = 3;
-    Signature borrower_signature = 4;
-    Signature lender_signature = 5;
-    nanoswap.enum.chain.ChainType chain = 6; // the borrowing chain and lending chain must be the same
-    nanoswap.enum.currency.CurrencyType currency = 7; // the borrowing currency and lending currency must be the same
-    int64 amount = 8; // the amount provided to the borrower initially
-    LoanStatus status = 9;
-    repeated PaymentSchedule payment_schedule = 10;
-    bytes loan_agreement = 11;
+    string id = 1;
+    string borrower_identity = 2; // borrower credit identity uuid
+    string lender_identity = 3; // lender credit identity uuid
+    repeated CoSigner cosigners = 4;
+    Signature borrower_signature = 5;
+    Signature lender_signature = 6;
+    nanoswap.enum.chain.ChainType chain = 7; // the borrowing chain and lending chain must be the same
+    nanoswap.enum.currency.CurrencyType currency = 8; // the borrowing currency and lending currency must be the same
+    int64 amount = 9; // the amount provided to the borrower initially
+    LoanStatus status = 10;
+    repeated PaymentSchedule payment_schedule = 11;
+    bytes loan_agreement = 12;
 }
 
 message PaymentSchedule {

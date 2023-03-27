@@ -18,5 +18,5 @@ message CreditEvent {
     string credit_identity = 3; // uuid of the end user
     google.protobuf.Timestamp occurred = 4;
     nanoswap.message.Signature publisher_signature = 5; // public key signature from the lending platform
-    nanoswap.message.Loan loan = 6;
+    string loan_id = 6;
 }
