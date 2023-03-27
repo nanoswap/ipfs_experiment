@@ -40,7 +40,7 @@ def run():
         currency = currency_pb2.XNO,
         amount = amount,
         status = loan_pb2.LoanStatus.CREATED,
-        payment_schedule = utils.create_payment_schedule(amount, 0.05, datetime.timedelta(days=100), "123")
+        payment_schedule = utils.create_payment_schedule(amount, 1.05, datetime.timedelta(days=100), 10, "123")
     )
 
 if __name__ == "__main__":

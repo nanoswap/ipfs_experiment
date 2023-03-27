@@ -21,14 +21,21 @@ def sign_loan(loan):
     loan.lender_signature = "asdf"
     return loan
 
-def create_payment_schedule(amount, interest_rate, total_duration, payment_wallet):
-    timestamp = Timestamp()
-    timestamp.FromDatetime(datetime.datetime.now() + total_duration)
-    schedule = loan_pb2.PaymentSchedule(
-        amount_due = amount,
-        due_date = timestamp,
-        payment_wallet = payment_wallet,
-        status = loan_pb2.PaymentStatus.DUE
-    )
-    print(schedule)
-    return [schedule]
+def create_payment_schedule(amount, interest_rate, total_duration, number_of_payments, payment_wallet):
+
+    total_amount_due = amount * interest_rate
+    amount_due_each_payment = int(total_amount_due / number_of_payments)
+    first_payment = datetime.datetime.now()
+    schedule = []
+
+    for payment_interval in range(number_of_payments):
+        timestamp = Timestamp()
+        timestamp.FromDatetime(first_payment + payment_interval * total_duration)
+        schedule.append(loan_pb2.PaymentSchedule(
+            amount_due = amount_due_each_payment,
+            due_date = timestamp,
+            payment_wallet = payment_wallet,
+            status = loan_pb2.PaymentStatus.DUE
+        ))
+
+    return schedule
