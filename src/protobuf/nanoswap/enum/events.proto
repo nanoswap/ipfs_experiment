@@ -1,4 +1,12 @@
 syntax = "proto3";
 package nanoswap.enum;
 
-// TODO
+enum CreditEventType {
+    PAYMENT_ON_TIME = 0;
+    MISSED_PAYMENT = 1;
+    LATE_PAYMENT = 2;
+    CREDIT_INQUIRY = 3;
+    LOAN_ISSUED = 4;
+    LOAN_PAID_IN_FULL = 5;
+    LOAN_DEFAULTED = 6;
+}

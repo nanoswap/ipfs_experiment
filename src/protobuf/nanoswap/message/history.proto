@@ -1,8 +1,21 @@
 syntax = "proto3";
 package nanoswap.message;
 
-// TODO
+import "google/protobuf/timestamp.proto";
 
+import "nanoswap/message/signature.proto";
+import "nanoswap/enum/events.proto";
+
+// ipfs file title: credit_identity value (uuid string)
 message History {
-    bytes credit_identity = 1;
+    repeated CreditEvent events = 1;
+}
+
+message CreditEvent {
+    nanoswap.enum.CreditEventType event_type = 1;
+    string transaction_artifact = 2; // trx ID if the lending platform is completely on-chain
+    string credit_identity = 3; // uuid of the end user
+    google.protobuf.Timestamp occurred = 4;
+    nanoswap.message.Signature publisher_signature = 5; // public key signature from the lending platform
+    string loan_id = 6;
 }

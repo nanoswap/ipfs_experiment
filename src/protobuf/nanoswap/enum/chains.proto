@@ -1,0 +1,9 @@
+syntax = "proto3";
+package nanoswap.enum.chain;
+
+enum ChainType {
+    OFF_CHAIN = 0;
+    XNO = 1;
+    ETH = 2;
+    FTM = 3;
+}
