@@ -5,6 +5,7 @@ import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
 
 import sys
+import copy
 
 def get_credit_filename(identity: identity_pb2.Identity) -> str:
     """
@@ -57,4 +58,28 @@ def get_next_payment_due(payment_schedule):
     return next_due_payment
 
 def update_payment(payment, status, transaction_id):
-    pass
+    payment.status = status
+    payment.transaction = transaction_id
+    return payment
+
+def upsert_payment(new_payment_obj, payment_schedule):
+    """
+    Update the payment schedule to reflect the new payment object
+
+    Args:
+        new_payment_obj (_type_): _description_
+        payment_schedule (_type_): _description_
+    """
+    response = copy.deepcopy(payment_schedule)
+    del response[:]
+
+    # find the corresponding payment object in the payment schedule (based on due date)
+    for i, payment in enumerate(payment_schedule):
+        if payment.due_date == new_payment_obj.due_date:
+            # add the new payment object
+            response.extend([new_payment_obj])
+        else:
+            # add the existing payment object as-is
+            response.extend([payment])
+    
+    return response

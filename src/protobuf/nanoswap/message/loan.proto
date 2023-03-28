@@ -35,7 +35,7 @@ message Loan {
     nanoswap.enum.currency.CurrencyType currency = 8; // the borrowing currency and lending currency must be the same
     int64 amount = 9; // the amount provided to the borrower initially
     LoanStatus status = 10;
-    repeated PaymentSchedule payment_schedule = 11;
+    repeated PaymentSchedule payment_schedule = 11; // NOTE: no two payments can have the exact same due_date
     bytes loan_agreement = 12;
 }
 

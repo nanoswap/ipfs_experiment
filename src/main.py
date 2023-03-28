@@ -1,4 +1,5 @@
 from faker import Faker
+import copy
 
 import nanoswap.enum.issuers_pb2 as issuers_pb2
 import nanoswap.message.identity_pb2 as identity_pb2
@@ -19,6 +20,30 @@ def create_user():
 
     # get the credit identity for the fake user
     return crud.get_credit_id(identity)
+
+def make_payment(borrower, loan):
+
+    # get the next due payment
+    next_payment = utils.get_next_payment_due(loan.payment_schedule)
+
+    # update the payment object in memory
+    next_payment = utils.update_payment(next_payment, loan_pb2.PaymentStatus.PAID_ON_TIME, "123")
+
+    # upsert the updated payment object into the payment schedule
+    payment_schedule = copy.deepcopy(loan.payment_schedule)
+    # assignment of repeated fields is not possible,
+    # so we have to copy it, delete it, and then reassign it
+    del loan.payment_schedule[:]
+    loan.payment_schedule.extend(utils.upsert_payment(next_payment, payment_schedule))
+    print(loan.payment_schedule)
+
+    # overwrite the data in ipfs to publicize it
+
+    # TODO: redo how this is done to make it simpler.
+    #   1. Give each payment in the schedule an ID, remove trx_id and payment status
+    #   2. Add the loan id and the payment schedule ID in the credit event key
+    #   3. send the payment status and trx id in the credit event
+    # the loan file should not need to be written to for every payment
 
 def run():
 
@@ -41,12 +66,7 @@ def run():
 
     # get the loans for the borrower
     loans = crud.get_loans(borrower)
-
-    # get the next due payment
-    next_payment = utils.get_next_payment_due(loans[0].payment_schedule)
-
-    # update the payment object in memory
-    next_payment = utils.update_payment(next_payment, loan_pb2.PaymentStatus.PAID_ON_TIME, "123")
+    make_payment(borrower, loans[0])
 
 if __name__ == "__main__":
     run()
