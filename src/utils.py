@@ -14,10 +14,10 @@ def get_credit_filename(identity: identity_pb2.Identity) -> str:
     Returns:
         str: The filename to use in ipfs
     """
-    return f"lookup.{identity.id_field_type}.{identity.id_field_content}"
+    return f"identity/{identity.id_field_type}.{identity.id_field_content}"
 
 def get_loan_filename(loan_id, borrower, lender):
-    return f"loan.borrower_{borrower}.lender_{lender}.{loan_id}"
+    return f"loan/borrower_{borrower}.lender_{lender}.loan_{loan_id}"
 
 def sign_loan(loan):
     loan.borrower_signature = "adsf"

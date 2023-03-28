@@ -50,10 +50,6 @@ def create_loan(borrower, lender, amount, interest, day_count, payment_interval_
     loan_id = str(uuid.uuid4())
     filename = utils.get_loan_filename(loan_id, borrower, lender)
 
-    # TODO:
-    #   - call `ipfs.mkdir` to make a folder for the user's loans
-    #   - update `utils.get_loan_filename` to use directory format
-
     loan = loan_pb2.Loan(
         borrower_identity = str(borrower),
         lender_identity = str(lender),
@@ -70,8 +66,10 @@ def create_loan(borrower, lender, amount, interest, day_count, payment_interval_
         )
     )
 
-    ipfs.write(filename, loan)
+    if not ipfs.does_file_exist(filename):
+        ipfs.write(filename, loan)
+
     return loan
 
 def get_loans(borrower):
-    ipfs.list_files(f"loan.borrower_{borrower}")
+    files = ipfs.list_files(f"loan/")
