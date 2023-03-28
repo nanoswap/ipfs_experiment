@@ -44,4 +44,5 @@ message PaymentSchedule {
     google.protobuf.Timestamp due_date = 2;
     string payment_wallet = 3;
     PaymentStatus status = 4;
+    optional string transaction = 5; // for completed payments, this is the transaction id of the payment
 }

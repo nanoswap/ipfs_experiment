@@ -2,8 +2,10 @@ from faker import Faker
 
 import nanoswap.enum.issuers_pb2 as issuers_pb2
 import nanoswap.message.identity_pb2 as identity_pb2
+import nanoswap.message.loan_pb2 as loan_pb2
 
 import crud
+import utils
 
 Faker.seed(0)
 fake = Faker()
@@ -41,7 +43,10 @@ def run():
     loans = crud.get_loans(borrower)
 
     # get the next due payment
-    utils.get_next_payment(loans[0].payment_schedule)
+    next_payment = utils.get_next_payment_due(loans[0].payment_schedule)
+
+    # update the payment object in memory
+    next_payment = utils.update_payment(next_payment, loan_pb2.PaymentStatus.PAID_ON_TIME, "123")
 
 if __name__ == "__main__":
     run()

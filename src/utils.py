@@ -4,6 +4,8 @@ from google.protobuf.timestamp_pb2 import Timestamp
 import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
 
+import sys
+
 def get_credit_filename(identity: identity_pb2.Identity) -> str:
     """
     Generate the filename for an identity
@@ -43,5 +45,16 @@ def create_payment_schedule(amount, interest_rate, total_duration, number_of_pay
 
     return schedule
 
-def get_next_payment(payment_schedule):
+def get_next_payment_due(payment_schedule):
+    next_due_seconds = sys.maxsize
+    next_due_payment = None
+    for payment in payment_schedule:
+        if payment.due_date.ToSeconds() < next_due_seconds and payment.status == loan_pb2.PaymentStatus.DUE:
+            next_due_seconds = payment.due_date.ToSeconds()
+            next_due_payment = payment
+
+
+    return next_due_payment
+
+def update_payment(payment, status, transaction_id):
     pass
