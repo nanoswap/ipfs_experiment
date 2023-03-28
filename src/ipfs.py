@@ -69,14 +69,5 @@ def does_file_exist(filename: str) -> bool:
 
 def list_files(prefix: str):
     process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
-    # file format: ['borrower_<borrower_id>.lender_<lender_id>.loan_<loan_id>']
     files = process.stdout.decode().split("\n")
-    files = [
-        {
-            "borrower": filename.split('.')[0].split("_")[1],
-            "lender": filename.split('.')[1].split("_")[1],
-            "loan": filename.split('.')[2].split("_")[1]
-        } for filename in files if filename
-    ]
-    print(files)
     return files

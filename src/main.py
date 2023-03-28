@@ -38,7 +38,10 @@ def run():
     # simulate the borrower making a payment
 
     # get the loans for the borrower
-    crud.get_loans(borrower)
+    loans = crud.get_loans(borrower)
+
+    # get the next due payment
+    utils.get_next_payment(loans[0].payment_schedule)
 
 if __name__ == "__main__":
     run()

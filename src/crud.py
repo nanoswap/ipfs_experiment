@@ -72,4 +72,39 @@ def create_loan(borrower, lender, amount, interest, day_count, payment_interval_
     return loan
 
 def get_loans(borrower):
+    """
+    Get the loan_id ' s for a borrower
+
+    Args:
+        borrower (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    # read the loan metadata from ipfs
     files = ipfs.list_files(f"loan/")
+
+    # parse the loan metadata from the filename
+    # filename format: ['borrower_<borrower_id>.lender_<lender_id>.loan_<loan_id>']
+    loan_metadata = [
+        {
+            "borrower": filename.split('.')[0].split("_")[1],
+            "lender": filename.split('.')[1].split("_")[1],
+            "loan": filename.split('.')[2].split("_")[1],
+            "filename": filename
+        } for filename in files if filename
+    ]
+    
+    # filter for the loans for this borrower
+    loan_files = [
+        loan["filename"] for loan in loan_metadata
+        if loan["borrower"] == str(borrower)
+    ]
+    
+    # read the full loan data for their loans
+    loans = []
+    for loan in loan_files:
+        loans.append(ipfs.read(f"loan/{loan}", loan_pb2.Loan()))
+    
+    return loans

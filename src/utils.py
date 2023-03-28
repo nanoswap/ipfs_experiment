@@ -42,3 +42,6 @@ def create_payment_schedule(amount, interest_rate, total_duration, number_of_pay
         ))
 
     return schedule
+
+def get_next_payment(payment_schedule):
+    pass
