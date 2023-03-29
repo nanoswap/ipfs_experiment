@@ -28,21 +28,20 @@ def make_payment(borrower, loan):
     next_payment = utils.get_next_payment_due(loan)
 
     # after the payment is confirmed, add it to the protobuf object
-    next_payment["data"].transaction = "123"
-    print(next_payment)
+    paid_payment = loan_pb2.LoanPayment(
+        amount_due = next_payment["data"].amount_due,
+        due_date = next_payment["data"].due_date,
+        transaction = "123"
+    )
 
     # upsert the updated payment object into the payment schedule
-    data2 = ipfs.read("loan/" + next_payment["metadata"]["filename"], loan_pb2.LoanPayment())
-    print(data2)
+    ipfs.write("loan/" + next_payment["metadata"]["filename"], paid_payment)
 
-    # ipfs.write("loan/" + next_payment["metadata"]["filename"], next_payment["data"])
-    # data = ipfs.read("loan/" + next_payment["metadata"]["filename"], loan_pb2.LoanPayment())
-    # print(data)
 
 def run():
 
     # create fake users
-    fake_users = [create_user() for _ in range(10)]
+    fake_users = [create_user() for _ in range(2)]
 
     # create a loan between two users
     borrower = fake_users[0].id
