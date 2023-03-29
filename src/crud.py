@@ -4,7 +4,7 @@ import ipfs
 import utils
 import datetime
 
-from models.return_types import CreditId, CreditIdStatus, LoanResponse
+from models.return_types import CreditId, CreditIdStatus, LoanResponse, LoanMetadata
 
 import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
@@ -81,15 +81,12 @@ def create_loan(
 
     return payment_schedule
 
-def get_loans(borrower: str) -> List[LoanResponse]:
+def get_loan_metadata() -> List[LoanMetadata]:
     """
-    Get the loans for a borrower
-
-    Args:
-        borrower (str): The borrow to filter for
+    Get all the loan metadata
 
     Returns:
-        List[LoanResponse]: The list of loans corresponding to the borrower
+        List[LoanMetadata]: The complete list of loan metadata
     """
 
     # read the loan metadata from ipfs
@@ -97,7 +94,7 @@ def get_loans(borrower: str) -> List[LoanResponse]:
 
     # parse the loan metadata from the filename
     # filename format: ['borrower_<borrower_id>.lender_<lender_id>.loan_<loan_id>']
-    loan_metadata = [
+    return [
         {
             "borrower": filename.split('.')[0].split("_")[1],
             "lender": filename.split('.')[1].split("_")[1],
@@ -106,19 +103,63 @@ def get_loans(borrower: str) -> List[LoanResponse]:
             "filename": filename
         } for filename in files if filename
     ]
-    
-    # filter for the loans for this borrower
-    loan_files = [
-        loan for loan in loan_metadata
-        if loan["borrower"] == str(borrower)
-    ]
-    
-    # read the full loan data for their loans
+
+def get_loan_data(loans: List[LoanMetadata]) -> List[LoanResponse]:
+    """
+    For each loan filename, read the data for that file from ipfs
+
+    Args:
+        loans (List[LoanMetadata]): The list of loan metadata from `get_loan_metadata`
+
+    Returns:
+        List[LoanResponse]: The list of loan metadata and corresponding data
+    """
     response = []
-    for loan in loan_files:
+    for loan in loans:
         response.append({
             "metadata": loan,
             "data": ipfs.read(f"loan/{loan['filename']}", loan_pb2.LoanPayment())
         })
     
     return response
+
+def get_loans_for_borrower(borrower: str) -> List[LoanResponse]:
+    """
+    Get the loans for a borrower
+
+    Args:
+        borrower (str): The borrower credit id to filter
+
+    Returns:
+        List[LoanResponse]: The list of loans corresponding to the borrower
+    """
+
+    # filter for the loans for this borrower
+    loan_files = [
+        loan for loan in get_loan_metadata()
+        if loan["borrower"] == str(borrower)
+    ]
+    
+    # read the full loan data for their loans
+    return get_loan_data(loan_files)
+
+
+def get_loans_for_lender(lender: str) -> List[LoanResponse]:
+    """
+    Get the loans for a lender
+
+    Args:
+        lender (str): The lender credit id to filter
+
+    Returns:
+        List[LoanResponse]: The list of loans corresponding to the lender
+    """
+    
+    # filter for the loans for this lender
+    loan_files = [
+        loan for loan in get_loan_metadata()
+        if loan["lender"] == str(lender)
+    ]
+    
+    # read the full loan data for their loans
+    return get_loan_data(loan_files)

@@ -61,7 +61,7 @@ def run():
     # simulate the borrower making a payment
 
     # get the loans for the borrower
-    loans = crud.get_loans(borrower)
+    loans = crud.get_loans_for_borrower(borrower)
 
     # make a payment
     make_payment(loans)
