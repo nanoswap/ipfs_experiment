@@ -21,7 +21,7 @@ def create_user():
     # get the credit identity for the fake user
     return crud.get_credit_id(identity)
 
-def make_payment(borrower, loan):
+def make_payment(loan):
 
     # get the next due payment
     next_payment = utils.get_next_payment_due(loan)
@@ -64,7 +64,7 @@ def run():
     loans = crud.get_loans(borrower)
 
     # make a payment
-    make_payment(borrower, loans)
+    make_payment(loans)
 
 if __name__ == "__main__":
     run()
