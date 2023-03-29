@@ -27,6 +27,8 @@ def make_payment(borrower, loan):
     # get the next due payment
     next_payment = utils.get_next_payment_due(loan)
 
+    # TODO: print "your next payment is due <date> for <amount> XNO"
+
     # after the payment is confirmed, add it to the protobuf object
     paid_payment = loan_pb2.LoanPayment(
         amount_due = next_payment["data"].amount_due,
@@ -54,6 +56,8 @@ def run():
         day_count = 10,
         payment_interval_count = 10
     )
+
+    # TODO: visualize payment schedule
 
     # simulate the borrower making a payment
 

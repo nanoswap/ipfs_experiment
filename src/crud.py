@@ -55,7 +55,7 @@ def create_loan(borrower, lender, amount, interest, day_count, payment_interval_
 
     for payment in payment_schedule:
         payment_id = str(uuid.uuid4())
-        filename = utils.get_loan_filename(loan_id, borrower, lender, payment_id)
+        filename = utils.get_loan_payment_filename(loan_id, borrower, lender, payment_id)
     
         if not ipfs.does_file_exist(filename):
             ipfs.add(filename, payment)
