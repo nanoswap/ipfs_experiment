@@ -1,12 +1,14 @@
+from typing import List
 import uuid
 import ipfs
 import utils
 import datetime
 
+from models.return_types import CreditId, CreditIdStatus, LoanResponse
+
 import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.lookup_pb2 as lookup_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
-from models.return_types import CreditId, CreditIdStatus
 
 def get_credit_id(identity: identity_pb2.Identity) -> CreditId:
     """
@@ -44,7 +46,26 @@ def get_credit_id(identity: identity_pb2.Identity) -> CreditId:
         ipfs_data = ipfs.read(filename, lookup_pb2.Lookup())
         return CreditId(uuid.UUID(ipfs_data.credit_identity), CreditIdStatus.RETRIEVED)
 
-def create_loan(borrower, lender, amount, interest, day_count, payment_interval_count):
+def create_loan(
+        borrower: str, lender: str, amount: int, interest: float, day_count: int, payment_interval_count: int
+    ) -> List[loan_pb2.LoanPayment]:
+    """
+    Construct a new loan and write it to ipfs
+
+    Args:
+        borrower (str): Credit id of the borrower end-user
+        lender (str): Credit id of the lender end-user
+        amount (int): Principal amount of the loan (before interest)
+        interest (float): Interest of the loan in decimal format (ex: 1.05 is 5%)
+        day_count (int): Number of days that the borrower has to finish repaying the loan
+        payment_interval_count (int): The number payments that the borrower has to pay
+
+    Returns:
+        List[loan_pb2.LoanPayment]: The created loan payment schedule
+    """
+    assert interest > 1
+
+    # create the payment schedule
     loan_id = str(uuid.uuid4())
     payment_schedule = utils.create_payment_schedule(
         amount,
@@ -53,24 +74,23 @@ def create_loan(borrower, lender, amount, interest, day_count, payment_interval_
         payment_interval_count
     )
 
+    # write each loan payment to ipfs
     for payment in payment_schedule:
         payment_id = str(uuid.uuid4())
-        filename = utils.get_loan_payment_filename(loan_id, borrower, lender, payment_id)
-    
-        if not ipfs.does_file_exist(filename):
-            ipfs.add(filename, payment)
+        filename = utils.get_loan_payment_filename(loan_id, borrower, lender, payment_id)    
+        ipfs.add(filename, payment)
 
     return payment_schedule
 
-def get_loans(borrower):
+def get_loans(borrower: str) -> List[LoanResponse]:
     """
-    Get the loan_id ' s for a borrower
+    Get the loans for a borrower
 
     Args:
-        borrower (_type_): _description_
+        borrower (str): The borrow to filter for
 
     Returns:
-        _type_: _description_
+        List[LoanResponse]: The list of loans corresponding to the borrower
     """
 
     # read the loan metadata from ipfs
