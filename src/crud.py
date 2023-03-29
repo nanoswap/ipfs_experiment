@@ -6,8 +6,6 @@ import datetime
 import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.lookup_pb2 as lookup_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
-import nanoswap.enum.chains_pb2 as chains_pb2
-import nanoswap.enum.currency_pb2 as currency_pb2
 from models.return_types import CreditId, CreditIdStatus
 
 def get_credit_id(identity: identity_pb2.Identity) -> CreditId:
@@ -34,7 +32,7 @@ def get_credit_id(identity: identity_pb2.Identity) -> CreditId:
         credit_id = uuid.uuid4()
 
         # wrap it in a protobuf and write it to ipfs
-        ipfs.write(filename, lookup_pb2.Lookup(
+        ipfs.add(filename, lookup_pb2.Lookup(
             credit_identity = str(credit_id)
         ))
 
@@ -48,28 +46,21 @@ def get_credit_id(identity: identity_pb2.Identity) -> CreditId:
 
 def create_loan(borrower, lender, amount, interest, day_count, payment_interval_count):
     loan_id = str(uuid.uuid4())
-    filename = utils.get_loan_filename(loan_id, borrower, lender)
-
-    loan = loan_pb2.Loan(
-        borrower_identity = str(borrower),
-        lender_identity = str(lender),
-        chain = chains_pb2.OFF_CHAIN,
-        currency = currency_pb2.XNO,
-        amount = amount,
-        status = loan_pb2.LoanStatus.CREATED,
-        payment_schedule = utils.create_payment_schedule(
-            amount,
-            interest,
-            datetime.timedelta(days=day_count),
-            payment_interval_count,
-            "123"
-        )
+    payment_schedule = utils.create_payment_schedule(
+        amount,
+        interest,
+        datetime.timedelta(days=day_count),
+        payment_interval_count
     )
 
-    if not ipfs.does_file_exist(filename):
-        ipfs.write(filename, loan)
+    for payment in payment_schedule:
+        payment_id = str(uuid.uuid4())
+        filename = utils.get_loan_filename(loan_id, borrower, lender, payment_id)
+    
+        if not ipfs.does_file_exist(filename):
+            ipfs.add(filename, payment)
 
-    return loan
+    return payment_schedule
 
 def get_loans(borrower):
     """
@@ -92,19 +83,23 @@ def get_loans(borrower):
             "borrower": filename.split('.')[0].split("_")[1],
             "lender": filename.split('.')[1].split("_")[1],
             "loan": filename.split('.')[2].split("_")[1],
+            "payment": filename.split('.')[3].split("_")[1],
             "filename": filename
         } for filename in files if filename
     ]
     
     # filter for the loans for this borrower
     loan_files = [
-        loan["filename"] for loan in loan_metadata
+        loan for loan in loan_metadata
         if loan["borrower"] == str(borrower)
     ]
     
     # read the full loan data for their loans
-    loans = []
+    response = []
     for loan in loan_files:
-        loans.append(ipfs.read(f"loan/{loan}", loan_pb2.Loan()))
+        response.append({
+            "metadata": loan,
+            "data": ipfs.read(f"loan/{loan['filename']}", loan_pb2.LoanPayment())
+        })
     
-    return loans
+    return response

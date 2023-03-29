@@ -31,7 +31,22 @@ def read(filename: str, reader: Message) -> Message:
     reader.ParseFromString(data)
     return reader
 
-def write(filename: str, data: Message) -> None:
+def _write(filename: str, data: Message) -> None:
+    # WIP
+
+    # write data to a local file
+    filepath = "src/generated/tmp/" + filename
+    with open(filepath, "wb") as f:
+        # serialize the data before writing
+        f.write(data.SerializeToString())
+
+    # upload that file
+    subprocess.run(["ipfs", "files", "write", filepath, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
+
+    # remove the temporary file
+    subprocess.run(["rm", filepath])
+
+def add(filename: str, data: Message) -> None:
     """
     Create a new file in ipfs.
     This does not work for updating existing files.

@@ -7,6 +7,7 @@ import nanoswap.message.loan_pb2 as loan_pb2
 
 import crud
 import utils
+import ipfs
 
 Faker.seed(0)
 fake = Faker()
@@ -24,26 +25,19 @@ def create_user():
 def make_payment(borrower, loan):
 
     # get the next due payment
-    next_payment = utils.get_next_payment_due(loan.payment_schedule)
+    next_payment = utils.get_next_payment_due(loan)
 
-    # update the payment object in memory
-    next_payment = utils.update_payment(next_payment, loan_pb2.PaymentStatus.PAID_ON_TIME, "123")
+    # after the payment is confirmed, add it to the protobuf object
+    next_payment["data"].transaction = "123"
+    print(next_payment)
 
     # upsert the updated payment object into the payment schedule
-    payment_schedule = copy.deepcopy(loan.payment_schedule)
-    # assignment of repeated fields is not possible,
-    # so we have to copy it, delete it, and then reassign it
-    del loan.payment_schedule[:]
-    loan.payment_schedule.extend(utils.upsert_payment(next_payment, payment_schedule))
-    print(loan.payment_schedule)
+    data2 = ipfs.read("loan/" + next_payment["metadata"]["filename"], loan_pb2.LoanPayment())
+    print(data2)
 
-    # overwrite the data in ipfs to publicize it
-
-    # TODO: redo how this is done to make it simpler.
-    #   1. Give each payment in the schedule an ID, remove trx_id and payment status
-    #   2. Add the loan id and the payment schedule ID in the credit event key
-    #   3. send the payment status and trx id in the credit event
-    # the loan file should not need to be written to for every payment
+    # ipfs.write("loan/" + next_payment["metadata"]["filename"], next_payment["data"])
+    # data = ipfs.read("loan/" + next_payment["metadata"]["filename"], loan_pb2.LoanPayment())
+    # print(data)
 
 def run():
 
@@ -53,7 +47,7 @@ def run():
     # create a loan between two users
     borrower = fake_users[0].id
     lender = fake_users[1].id
-    loan = crud.create_loan(
+    crud.create_loan(
         borrower = borrower,
         lender = lender,
         amount = 100,
@@ -66,7 +60,9 @@ def run():
 
     # get the loans for the borrower
     loans = crud.get_loans(borrower)
-    make_payment(borrower, loans[0])
+
+    # make a payment
+    make_payment(borrower, loans)
 
 if __name__ == "__main__":
     run()

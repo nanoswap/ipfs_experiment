@@ -19,15 +19,10 @@ def get_credit_filename(identity: identity_pb2.Identity) -> str:
     """
     return f"identity/{identity.id_field_type}.{identity.id_field_content}"
 
-def get_loan_filename(loan_id, borrower, lender):
-    return f"loan/borrower_{borrower}.lender_{lender}.loan_{loan_id}"
+def get_loan_filename(loan_id, borrower, lender, payment_id):
+    return f"loan/borrower_{borrower}.lender_{lender}.loan_{loan_id}.payment_{payment_id}"
 
-def sign_loan(loan):
-    loan.borrower_signature = "adsf"
-    loan.lender_signature = "asdf"
-    return loan
-
-def create_payment_schedule(amount, interest_rate, total_duration, number_of_payments, payment_wallet):
+def create_payment_schedule(amount, interest_rate, total_duration, number_of_payments):
 
     total_amount_due = amount * interest_rate
     amount_due_each_payment = int(total_amount_due / number_of_payments)
@@ -37,11 +32,9 @@ def create_payment_schedule(amount, interest_rate, total_duration, number_of_pay
     for payment_interval in range(number_of_payments):
         timestamp = Timestamp()
         timestamp.FromDatetime(first_payment + payment_interval * total_duration)
-        schedule.append(loan_pb2.PaymentSchedule(
+        schedule.append(loan_pb2.LoanPayment(
             amount_due = amount_due_each_payment,
-            due_date = timestamp,
-            payment_wallet = payment_wallet,
-            status = loan_pb2.PaymentStatus.DUE
+            due_date = timestamp
         ))
 
     return schedule
@@ -50,10 +43,9 @@ def get_next_payment_due(payment_schedule):
     next_due_seconds = sys.maxsize
     next_due_payment = None
     for payment in payment_schedule:
-        if payment.due_date.ToSeconds() < next_due_seconds and payment.status == loan_pb2.PaymentStatus.DUE:
-            next_due_seconds = payment.due_date.ToSeconds()
+        if payment['data'].due_date.ToSeconds() < next_due_seconds and not payment['data'].transaction:
+            next_due_seconds = payment['data'].due_date.ToSeconds()
             next_due_payment = payment
-
 
     return next_due_payment
 
@@ -61,25 +53,3 @@ def update_payment(payment, status, transaction_id):
     payment.status = status
     payment.transaction = transaction_id
     return payment
-
-def upsert_payment(new_payment_obj, payment_schedule):
-    """
-    Update the payment schedule to reflect the new payment object
-
-    Args:
-        new_payment_obj (_type_): _description_
-        payment_schedule (_type_): _description_
-    """
-    response = copy.deepcopy(payment_schedule)
-    del response[:]
-
-    # find the corresponding payment object in the payment schedule (based on due date)
-    for i, payment in enumerate(payment_schedule):
-        if payment.due_date == new_payment_obj.due_date:
-            # add the new payment object
-            response.extend([new_payment_obj])
-        else:
-            # add the existing payment object as-is
-            response.extend([payment])
-    
-    return response
