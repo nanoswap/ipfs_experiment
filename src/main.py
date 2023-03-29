@@ -15,7 +15,7 @@ def create_user():
     # create fake data for a hypothetical user
     identity = identity_pb2.Identity(
         id_field_content = fake.ssn(),
-        id_field_type = issuers_pb2.Issuer.UNITED_STATES_AMERICA___FEDERAL___SOCIAL_SECURITY_NUMBER
+        id_field_type = issuers_pb2.Issuer.USA_SSN
     )
 
     # get the credit identity for the fake user

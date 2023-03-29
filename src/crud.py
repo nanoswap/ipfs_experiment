@@ -7,7 +7,6 @@ import datetime
 from models.return_types import CreditId, CreditIdStatus, LoanResponse
 
 import nanoswap.message.identity_pb2 as identity_pb2
-import nanoswap.message.lookup_pb2 as lookup_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
 
 def get_credit_id(identity: identity_pb2.Identity) -> CreditId:
@@ -34,7 +33,7 @@ def get_credit_id(identity: identity_pb2.Identity) -> CreditId:
         credit_id = uuid.uuid4()
 
         # wrap it in a protobuf and write it to ipfs
-        ipfs.add(filename, lookup_pb2.Lookup(
+        ipfs.add(filename, identity_pb2.Lookup(
             credit_identity = str(credit_id)
         ))
 
@@ -43,7 +42,7 @@ def get_credit_id(identity: identity_pb2.Identity) -> CreditId:
     else:
 
         # read the existing identity
-        ipfs_data = ipfs.read(filename, lookup_pb2.Lookup())
+        ipfs_data = ipfs.read(filename, identity_pb2.Lookup())
         return CreditId(uuid.UUID(ipfs_data.credit_identity), CreditIdStatus.RETRIEVED)
 
 def create_loan(

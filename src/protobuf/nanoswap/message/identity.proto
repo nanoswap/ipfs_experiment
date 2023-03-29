@@ -1,9 +1,13 @@
 syntax = "proto3";
 package nanoswap.message;
-
 import "nanoswap/enum/issuers.proto";
 
 message Identity {
-    nanoswap.enum.Issuer id_field_type = 1; // ex: UNITED_STATES_AMERICA_FEDERAL_SOCIAL_SECURITY_NUMBER
+    nanoswap.enum.Issuer id_field_type = 1; // ex: USA_SSN
     string id_field_content = 2; // ex: "123-45-6789"
+}
+
+// ipfs file title: <id field type>.<id field content>
+message Lookup {
+    string credit_identity = 1; // uuid of the user
 }
