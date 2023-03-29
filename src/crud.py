@@ -128,7 +128,7 @@ def get_loans_for_borrower(borrower: str) -> List[LoanResponse]:
     Get the loans for a borrower
 
     Args:
-        borrower (str): The borrower credit id to filter
+        borrower (str): The borrower credit id to use in filtering
 
     Returns:
         List[LoanResponse]: The list of loans corresponding to the borrower
@@ -149,7 +149,7 @@ def get_loans_for_lender(lender: str) -> List[LoanResponse]:
     Get the loans for a lender
 
     Args:
-        lender (str): The lender credit id to filter
+        lender (str): The lender credit id to use in filtering
 
     Returns:
         List[LoanResponse]: The list of loans corresponding to the lender
@@ -162,4 +162,24 @@ def get_loans_for_lender(lender: str) -> List[LoanResponse]:
     ]
     
     # read the full loan data for their loans
+    return get_loan_data(loan_files)
+
+def get_loan(loan: str) -> List[LoanResponse]:
+    """
+    Get the loan data for a loan id
+
+    Args:
+        loan (str): The loan uuid to use in filtering
+
+    Returns:
+        List[LoanResponse]: The list of loans corresponding to the lender
+    """
+    
+    # filter for the loans for the loan id
+    loan_files = [
+        loan for loan in get_loan_metadata()
+        if loan["loan"] == str(loan)
+    ]
+    
+    # read the full loan data for the loans
     return get_loan_data(loan_files)
