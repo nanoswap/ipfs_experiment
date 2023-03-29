@@ -61,7 +61,13 @@ def run():
     # simulate the borrower making a payment
 
     # get the loans for the borrower
-    loans = crud.get_loans(borrower)
+    loans = crud.get_loans()
+
+    # filter for the loans for this borrower
+    loans = [
+        loan for loan in loans
+        if loan["metadata"]["borrower"] == str(borrower)
+    ]
 
     # make a payment
     make_payment(loans)

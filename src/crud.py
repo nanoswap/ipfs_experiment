@@ -81,9 +81,9 @@ def create_loan(
 
     return payment_schedule
 
-def get_loans(borrower: str) -> List[LoanResponse]:
+def get_loans() -> List[LoanResponse]:
     """
-    Get the loans for a borrower
+    Get ALL the loan data
 
     Args:
         borrower (str): The borrow to filter for
@@ -97,7 +97,7 @@ def get_loans(borrower: str) -> List[LoanResponse]:
 
     # parse the loan metadata from the filename
     # filename format: ['borrower_<borrower_id>.lender_<lender_id>.loan_<loan_id>']
-    loan_metadata = [
+    loans = [
         {
             "borrower": filename.split('.')[0].split("_")[1],
             "lender": filename.split('.')[1].split("_")[1],
@@ -107,15 +107,9 @@ def get_loans(borrower: str) -> List[LoanResponse]:
         } for filename in files if filename
     ]
     
-    # filter for the loans for this borrower
-    loan_files = [
-        loan for loan in loan_metadata
-        if loan["borrower"] == str(borrower)
-    ]
-    
     # read the full loan data for their loans
     response = []
-    for loan in loan_files:
+    for loan in loans:
         response.append({
             "metadata": loan,
             "data": ipfs.read(f"loan/{loan['filename']}", loan_pb2.LoanPayment())
