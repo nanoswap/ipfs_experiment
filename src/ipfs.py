@@ -1,4 +1,5 @@
 import subprocess
+from typing import List
 from google.protobuf.message import Message
 
 IPFS_HOME =  "/data"
@@ -70,7 +71,7 @@ def does_file_exist(filename: str) -> bool:
     Check if a file exists in ipfs
 
     Args:
-        filename (str): the file to check for
+        filename (str): The file to check
 
     Returns:
         bool: True if the file exists, false otherwise
@@ -80,7 +81,16 @@ def does_file_exist(filename: str) -> bool:
     does_not_exist = ( process.returncode == 1 and "file does not exist" in str(process.stderr) )
     return not does_not_exist
 
-def list_files(prefix: str):
+def list_files(prefix: str) -> List[str]:
+    """
+    List the ipfs files in a directory
+
+    Args:
+        prefix (str): The path to search on ipfs
+
+    Returns:
+        List[str]: The list of filenames found at that location
+    """
     process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
     files = process.stdout.decode().split("\n")
     return files

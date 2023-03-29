@@ -6,7 +6,6 @@ import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
 
 import sys
-import copy
 
 def get_credit_filename(identity: identity_pb2.Identity) -> str:
     """

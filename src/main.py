@@ -1,5 +1,4 @@
 from faker import Faker
-import copy
 
 import nanoswap.enum.issuers_pb2 as issuers_pb2
 import nanoswap.message.identity_pb2 as identity_pb2
