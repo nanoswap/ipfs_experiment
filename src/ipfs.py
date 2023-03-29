@@ -3,7 +3,7 @@ from google.protobuf.message import Message
 
 IPFS_HOME =  "/data"
 
-def _mkdir(directory_name: str) -> None:
+def mkdir(directory_name: str) -> None:
     """
     Create a directory in ipfs
 
@@ -32,6 +32,19 @@ def read(filename: str, reader: Message) -> Message:
     return reader
 
 def write(filename: str, data: Message) -> None:
+    # write data to a local file
+    filepath = "src/generated/tmp/" + filename
+    with open(filepath, "wb") as f:
+        # serialize the data before writing
+        f.write(data.SerializeToString())
+
+    # upload that file
+    subprocess.run(["ipfs", "files", "write", "-t", f"{IPFS_HOME}/{filename}", filepath], capture_output=True)
+
+    # remove the temporary file
+    subprocess.run(["rm", filepath])
+
+def add(filename: str, data: Message) -> None:
     """
     Create a new file in ipfs.
     This does not work for updating existing files.
@@ -48,7 +61,7 @@ def write(filename: str, data: Message) -> None:
 
     # upload that file
     subprocess.run(["ipfs", "add", filepath, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
- 
+
     # remove the temporary file
     subprocess.run(["rm", filepath])
 
@@ -66,3 +79,8 @@ def does_file_exist(filename: str) -> bool:
     process = subprocess.run(["ipfs", "files", "stat", f"{IPFS_HOME}/{filename}"], capture_output=True)
     does_not_exist = ( process.returncode == 1 and "file does not exist" in str(process.stderr) )
     return not does_not_exist
+
+def list_files(prefix: str):
+    process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
+    files = process.stdout.decode().split("\n")
+    return files

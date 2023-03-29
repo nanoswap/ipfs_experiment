@@ -1,9 +1,0 @@
-syntax = "proto3";
-package nanoswap.message;
-
-import "google/protobuf/timestamp.proto";
-
-message Signature {
-    google.protobuf.Timestamp signature_timestamp = 1;
-    bytes signature = 2;
-}

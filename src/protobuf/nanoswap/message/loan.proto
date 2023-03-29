@@ -3,46 +3,10 @@ package nanoswap.message;
 
 import "google/protobuf/timestamp.proto";
 
-import "nanoswap/enum/chains.proto";
-import "nanoswap/enum/currency.proto";
-import "nanoswap/message/signature.proto";
-
-enum LoanStatus {
-    CREATED = 0;
-    IN_PROGRESS = 1;
-    COMPLETE = 2;
-}
-
-enum PaymentStatus {
-    DUE = 0;
-    PAID_ON_TIME = 1;
-    PAID_LATE = 2;
-    ABSOLVED = 3;
-}
-
-message CoSigner {
-    string credit_identity = 1;
-    Signature signature = 2;
-}
-
-message Loan {
-    string id = 1;
-    string borrower_identity = 2; // borrower credit identity uuid
-    string lender_identity = 3; // lender credit identity uuid
-    repeated CoSigner cosigners = 4;
-    Signature borrower_signature = 5;
-    Signature lender_signature = 6;
-    nanoswap.enum.chain.ChainType chain = 7; // the borrowing chain and lending chain must be the same
-    nanoswap.enum.currency.CurrencyType currency = 8; // the borrowing currency and lending currency must be the same
-    int64 amount = 9; // the amount provided to the borrower initially
-    LoanStatus status = 10;
-    repeated PaymentSchedule payment_schedule = 11;
-    bytes loan_agreement = 12;
-}
-
-message PaymentSchedule {
+// ipfs filename:
+//   borrower_<id>.lender_<id>.loan_<id>.payment_<payment_id>
+message LoanPayment {
     int64 amount_due = 1;
     google.protobuf.Timestamp due_date = 2;
-    string payment_wallet = 3;
-    PaymentStatus status = 4;
+    optional string transaction = 3; // for completed payments, this is the transaction id of the payment
 }
