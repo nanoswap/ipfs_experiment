@@ -1,5 +1,4 @@
 from faker import Faker
-import copy
 
 import nanoswap.enum.issuers_pb2 as issuers_pb2
 import nanoswap.message.identity_pb2 as identity_pb2
@@ -16,16 +15,18 @@ def create_user():
     # create fake data for a hypothetical user
     identity = identity_pb2.Identity(
         id_field_content = fake.ssn(),
-        id_field_type = issuers_pb2.Issuer.UNITED_STATES_AMERICA___FEDERAL___SOCIAL_SECURITY_NUMBER
+        id_field_type = issuers_pb2.Issuer.USA_SSN
     )
 
     # get the credit identity for the fake user
     return crud.get_credit_id(identity)
 
-def make_payment(borrower, loan):
+def make_payment(loan):
 
     # get the next due payment
     next_payment = utils.get_next_payment_due(loan)
+
+    # TODO: print "your next payment is due <date> for <amount> XNO"
 
     # after the payment is confirmed, add it to the protobuf object
     paid_payment = loan_pb2.LoanPayment(
@@ -55,13 +56,15 @@ def run():
         payment_interval_count = 10
     )
 
+    # TODO: visualize payment schedule
+
     # simulate the borrower making a payment
 
     # get the loans for the borrower
     loans = crud.get_loans(borrower)
 
     # make a payment
-    make_payment(borrower, loans)
+    make_payment(loans)
 
 if __name__ == "__main__":
     run()

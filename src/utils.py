@@ -1,11 +1,11 @@
 import datetime
+from typing import List
 from google.protobuf.timestamp_pb2 import Timestamp
 
 import nanoswap.message.identity_pb2 as identity_pb2
 import nanoswap.message.loan_pb2 as loan_pb2
 
 import sys
-import copy
 
 def get_credit_filename(identity: identity_pb2.Identity) -> str:
     """
@@ -19,10 +19,37 @@ def get_credit_filename(identity: identity_pb2.Identity) -> str:
     """
     return f"identity/{identity.id_field_type}.{identity.id_field_content}"
 
-def get_loan_filename(loan_id, borrower, lender, payment_id):
+def get_loan_payment_filename(loan_id: str, borrower: str, lender: str, payment_id) -> str:
+    """
+    Generate the filename for a loan payment
+
+    Args:
+        loan_id (str): id for the loan (spanning across all payments for it)
+        borrower (str): credit id for the borrower end-user
+        lender (str): credit id for the lender end-user
+        payment_id (str): id for the loan payment
+
+    Returns:
+        str: The filename to use in ipfs
+    """
     return f"loan/borrower_{borrower}.lender_{lender}.loan_{loan_id}.payment_{payment_id}"
 
-def create_payment_schedule(amount, interest_rate, total_duration, number_of_payments):
+def create_payment_schedule(
+        amount: int, interest_rate: float, total_duration: datetime.timedelta, number_of_payments: int
+    ) -> List[loan_pb2.LoanPayment]:
+    """
+    Generate a list of loan payment objects based on some initial loan parameters
+
+    Args:
+        amount (int): The amount of the loan (before interest)
+        interest_rate (float): The interest rate of the loan in decimal (ex: 1.05 is 5%)
+        total_duration (datetime.timedelta): The time that the borrower has to finish all repayments
+        number_of_payments (int): The number of payments to break up the loan into
+
+    Returns:
+        List[loan_pb2.LoanPayment]: The derived payment schedule with how much to pay on what days
+    """
+    assert interest_rate > 1
 
     total_amount_due = amount * interest_rate
     amount_due_each_payment = int(total_amount_due / number_of_payments)
@@ -39,17 +66,23 @@ def create_payment_schedule(amount, interest_rate, total_duration, number_of_pay
 
     return schedule
 
-def get_next_payment_due(payment_schedule):
+def get_next_payment_due(payment_schedule: List[loan_pb2.LoanPayment]) -> loan_pb2.LoanPayment:
+    """
+    Filter the payment schedule to find the next upcoming payment
+
+    Args:
+        payment_schedule (List[loan_pb2.LoanPayment]): The full payment schedule for the loan
+
+    Returns:
+        loan_pb2.LoanPayment: The next upcoming payment
+    """
     next_due_seconds = sys.maxsize
     next_due_payment = None
     for payment in payment_schedule:
+        # TODO: if the transaction exists, check if it is valid, complete, and for the correct time / amount
+        # (using XNO RPC calls)
         if payment['data'].due_date.ToSeconds() < next_due_seconds and not payment['data'].transaction:
             next_due_seconds = payment['data'].due_date.ToSeconds()
             next_due_payment = payment
 
     return next_due_payment
-
-def update_payment(payment, status, transaction_id):
-    payment.status = status
-    payment.transaction = transaction_id
-    return payment
