@@ -19,21 +19,6 @@ def get_credit_filename(identity: identity_pb2.Identity) -> str:
     """
     return f"identity/{identity.id_field_type}.{identity.id_field_content}"
 
-def get_loan_payment_filename(loan_id: str, borrower: str, lender: str, payment_id) -> str:
-    """
-    Generate the filename for a loan payment
-
-    Args:
-        loan_id (str): id for the loan (spanning across all payments for it)
-        borrower (str): credit id for the borrower end-user
-        lender (str): credit id for the lender end-user
-        payment_id (str): id for the loan payment
-
-    Returns:
-        str: The filename to use in ipfs
-    """
-    return f"loan/borrower_{borrower}.lender_{lender}.loan_{loan_id}.payment_{payment_id}"
-
 def create_payment_schedule(
         amount: int, interest_rate: float, total_duration: datetime.timedelta, number_of_payments: int
     ) -> List[loan_pb2.LoanPayment]:
