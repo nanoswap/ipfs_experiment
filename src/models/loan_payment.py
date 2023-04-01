@@ -8,19 +8,7 @@ import ipfs
 from google.protobuf.message import Message
 from google.protobuf.timestamp_pb2 import Timestamp
 
-class IpfsFile:
-    filename: str
-    writer: Message
-    reader: Message
-
-    def read(self: object) -> None:
-        ipfs.read(self.filename, self.reader)
-
-    def write(self: object) -> None:
-        ipfs.write(self.filename, self.writer)
-    
-    def add(self: object) -> None:
-        ipfs.add(self.filename, self.writer)
+from models.ipfs_file import IpfsFile
 
 @dataclass
 class LoanPayment(IpfsFile):
