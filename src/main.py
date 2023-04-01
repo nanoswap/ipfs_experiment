@@ -64,9 +64,10 @@ def run():
     # simulate the borrower making a payment
 
     # get the loans for the borrower
-    # loans = crud.get_loans_for_borrower(borrower)
+    loans = LoanPayment.query_borrower_or_lender(lender_id = None, borrower_id = borrower)
+    print(loans)
 
-    # # make a payment
+    # # # make a payment
     # make_payment(loans)
 
 if __name__ == "__main__":
