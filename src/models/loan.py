@@ -5,10 +5,7 @@ import uuid
 import datetime
 from typing import List
 from google.protobuf.timestamp_pb2 import Timestamp
-
 from models.loan_payment import LoanPayment
-import sys
-import ipfs
 
 @dataclass
 class Loan:

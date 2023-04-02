@@ -1,13 +1,9 @@
 from faker import Faker
-
+import datetime
 import nanoswap.enum.issuers_pb2 as issuers_pb2
-import nanoswap.message.identity_pb2 as identity_pb2
-
 from models.loan_payment import LoanPayment
 from models.loan import Loan
 from models.identity import CreditId
-
-import datetime
 
 def run():
 

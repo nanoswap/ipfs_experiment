@@ -1,10 +1,8 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
-from enum import Enum
-
-import nanoswap.message.identity_pb2 as identity_pb2
 import uuid
+from enum import Enum
 import ipfs
 
 import nanoswap.message.identity_pb2 as identity_pb2
