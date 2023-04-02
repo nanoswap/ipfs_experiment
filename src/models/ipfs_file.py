@@ -15,3 +15,7 @@ class IpfsFile:
     
     def add(self: object) -> None:
         ipfs.add(self.filename, self.writer)
+
+    def delete(self: object) -> None:
+        """ Only needed for local testing """
+        ipfs.delete(self.filename)

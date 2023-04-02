@@ -38,7 +38,6 @@ class LoanPayment(IpfsFile):
 
     @staticmethod
     def open(filename: str) -> object:
-        print(filename.split("/")[3].split("_")[1])
         loan_payment = LoanPayment(
             borrower_id=filename.split("/")[1].split(".")[0].split("_")[1],
             lender_id=filename.split("/")[1].split(".")[1].split("_")[1],
@@ -47,7 +46,7 @@ class LoanPayment(IpfsFile):
         )
         loan_payment.read()
         return loan_payment
-    
+
     @staticmethod
     def to_dataframe(loan_payments: List[object]) -> pd.DataFrame:
 

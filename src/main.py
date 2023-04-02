@@ -42,8 +42,6 @@ def run():
         payment_interval_count = 10
     )
 
-    # TODO: visualize payment schedule
-
     # simulate the borrower making a payment
 
     # get the loans for the borrower
@@ -55,6 +53,10 @@ def run():
     # make a payment
     next_payment = LoanPayment.get_earliest_due(loan_payments)
     print("Next payment due: ", datetime.datetime.fromtimestamp(next_payment.reader.due_date.ToSeconds()))
+
+    # clean up: delete loan files (for repeatable testing/debugging)
+    for payment in loan_payments:
+        payment.delete()
 
 if __name__ == "__main__":
     run()

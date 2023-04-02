@@ -103,3 +103,6 @@ def list_files(prefix: str) -> List[str]:
     process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
     files = process.stdout.decode().split("\n")
     return files
+
+def delete(filename: str) -> None:
+    subprocess.run(["ipfs", "files", "rm", "-r", f"{IPFS_HOME}/{filename}"], capture_output=True)
