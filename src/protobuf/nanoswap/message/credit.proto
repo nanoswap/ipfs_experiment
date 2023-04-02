@@ -1,0 +1,6 @@
+
+// Used to verify that a transaction on a LoanPayment went to the lender's wallet.
+//   ipfs filename: wallet/wallet_<wallet_id>
+message PaymentWallet {
+    string credit_identity = 1;
+}

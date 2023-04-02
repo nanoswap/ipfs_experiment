@@ -1,6 +1,7 @@
 import subprocess
 from typing import List
 from google.protobuf.message import Message
+import os
 
 IPFS_HOME =  "/data"
 
@@ -34,16 +35,18 @@ def read(filename: str, reader: Message) -> Message:
 
 def write(filename: str, data: Message) -> None:
     # write data to a local file
-    filepath = "src/generated/tmp/" + filename
-    with open(filepath, "wb") as f:
+    path = f"src/generated/tmp/{filename}"
+    # create the subdirectories locally if they don't already exist
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
         # serialize the data before writing
         f.write(data.SerializeToString())
 
     # upload that file
-    subprocess.run(["ipfs", "files", "write", "-t", f"{IPFS_HOME}/{filename}", filepath], capture_output=True)
+    subprocess.run(["ipfs", "files", "write", "-t", f"{IPFS_HOME}/{filename}", path], capture_output=True)
 
     # remove the temporary file
-    subprocess.run(["rm", filepath])
+    subprocess.run(["rm", path])
 
 def add(filename: str, data: Message) -> None:
     """
@@ -55,16 +58,22 @@ def add(filename: str, data: Message) -> None:
         data (Message): The protobuf object that will be written to the new file
     """
     # write data to a local file
-    filepath = "src/generated/tmp/" + filename
-    with open(filepath, "wb") as f:
+    path = f"src/generated/tmp/{filename}"
+    # create the subdirectories locally if they don't already exist
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "wb") as f:
         # serialize the data before writing
         f.write(data.SerializeToString())
 
+    # create the directory in ipfs
+    directory = "/".join(filename.split("/")[:-1])
+    subprocess.run(["ipfs", "files", "mkdir", "-p",f"{IPFS_HOME}/{directory}"])
+
     # upload that file
-    subprocess.run(["ipfs", "add", filepath, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
+    subprocess.run(["ipfs", "add", "-r", path, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
 
     # remove the temporary file
-    subprocess.run(["rm", filepath])
+    subprocess.run(["rm", path])
 
 def does_file_exist(filename: str) -> bool:
     """
@@ -94,3 +103,6 @@ def list_files(prefix: str) -> List[str]:
     process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
     files = process.stdout.decode().split("\n")
     return files
+
+def delete(filename: str) -> None:
+    subprocess.run(["ipfs", "files", "rm", "-r", f"{IPFS_HOME}/{filename}"], capture_output=True)
