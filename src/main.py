@@ -49,10 +49,12 @@ def run():
     # get the loans for the borrower
     loan_payments = LoanPayment.query_borrower_or_lender(lender_id = None, borrower_id = borrower)
     loan_payments = LoanPayment.flatten_query_results(loan_payments)
+    loan_df = LoanPayment.to_dataframe(loan_payments)
+    print(loan_df)
 
     # make a payment
     next_payment = LoanPayment.get_earliest_due(loan_payments)
-    print(datetime.datetime.fromtimestamp(next_payment.reader.due_date.ToSeconds()))
+    print("Next payment due: ", datetime.datetime.fromtimestamp(next_payment.reader.due_date.ToSeconds()))
 
 if __name__ == "__main__":
     run()
