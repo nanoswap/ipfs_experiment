@@ -2,14 +2,11 @@ from faker import Faker
 
 import nanoswap.enum.issuers_pb2 as issuers_pb2
 import nanoswap.message.identity_pb2 as identity_pb2
-import nanoswap.message.loan_pb2 as loan_pb2
 
 from models.loan_payment import LoanPayment
 from models.loan import Loan
 
 import crud
-import utils
-import ipfs
 import datetime
 
 Faker.seed(0)
