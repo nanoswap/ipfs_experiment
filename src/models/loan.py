@@ -51,10 +51,6 @@ class Loan:
             datetime.timedelta(days=day_count),
             payment_interval_count
         )
-    
-    @staticmethod
-    def open(filename: str):
-        pass
 
     def create_payment_schedule(
             self: object,
@@ -87,19 +83,3 @@ class Loan:
             self.payment_schedule.append(loan_payment)
             # write the data to ipfs
             loan_payment.add()
-
-    def get_next_payment_due(self) -> LoanPayment:
-        """
-        Filter the payment schedule to find the next upcoming payment
-        """
-        next_due_seconds = sys.maxsize
-        next_due_payment = None
-        for payment in self.payment_schedule:
-            # TODO: if the transaction exists, check if it is valid, complete, and for the correct time / amount
-            # (using XNO RPC calls)
-            payment_data = payment.read()
-            if payment_data.due_date.ToSeconds() < next_due_seconds and not payment_data.transaction:
-                next_due_seconds = payment_data.due_date.ToSeconds()
-                next_due_payment = payment
-
-        return next_due_payment

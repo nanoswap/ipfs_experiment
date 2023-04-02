@@ -7,8 +7,8 @@ import nanoswap.message.loan_pb2 as loan_pb2
 import ipfs
 from google.protobuf.message import Message
 from google.protobuf.timestamp_pb2 import Timestamp
-
 from models.ipfs_file import IpfsFile
+import sys
 
 @dataclass
 class LoanPayment(IpfsFile):
@@ -71,8 +71,10 @@ class LoanPayment(IpfsFile):
 
     @staticmethod
     def query_borrower_or_lender(borrower_id: UUID = None, lender_id: UUID = None):
+        assert borrower_id or lender_id
+
         files = ipfs.list_files(f"loan/")
-        result = []
+        result = {}
         for file in files:
 
             if not file:
@@ -81,13 +83,32 @@ class LoanPayment(IpfsFile):
             filename_borrower_id = file.split(".")[0].split("_")[1]
             filename_lender_id = file.split(".")[1].split("_")[1]
 
-            if borrower_id and str(filename_borrower_id) == str(borrower_id):
-                result.append(LoanPayment.query_borrower_and_lender(filename_borrower_id, filename_lender_id))
+            if borrower_id and filename_borrower_id == str(borrower_id):
+                result[file] = LoanPayment.query_borrower_and_lender(filename_borrower_id, filename_lender_id)
 
         
-            if lender_id and filename_lender_id == lender_id:
-                result.append(LoanPayment.query_borrower_and_lender(filename_borrower_id, filename_lender_id))
+            if lender_id and filename_lender_id == str(lender_id):
+                result[file] = LoanPayment.query_borrower_and_lender(filename_borrower_id, filename_lender_id)
         
         return result
 
+    @staticmethod
+    def flatten_query_results(loan_payments):
+        result = []
+        for borrower_lender in loan_payments:
+            for loan in loan_payments[borrower_lender]:
+                for payment in loan_payments[borrower_lender][loan]:
+                    result.append(payment)
         
+        return result
+
+    @staticmethod
+    def get_earliest_due(loan_payments: List[object]) -> object:
+        earliest = sys.maxsize
+        result = None
+        for payment in loan_payments:
+            if payment.reader.due_date.ToSeconds() < earliest:
+                earliest = payment.reader.due_date.ToSeconds()
+                result = payment
+        
+        return result

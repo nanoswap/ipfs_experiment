@@ -10,6 +10,7 @@ from models.loan import Loan
 import crud
 import utils
 import ipfs
+import datetime
 
 Faker.seed(0)
 fake = Faker()
@@ -23,24 +24,6 @@ def create_user():
 
     # get the credit identity for the fake user
     return crud.get_credit_id(identity)
-
-# def make_payment(loan):
-
-#     # get the next due payment
-#     next_payment = utils.get_next_payment_due(loan)
-
-#     # TODO: print "your next payment is due <date> for <amount> XNO"
-
-#     # after the payment is confirmed, add it to the protobuf object
-#     paid_payment = loan_pb2.LoanPayment(
-#         amount_due = next_payment["data"].amount_due,
-#         due_date = next_payment["data"].due_date,
-#         transaction = "123"
-#     )
-
-#     # upsert the updated payment object into the payment schedule
-#     ipfs.write("loan/" + next_payment["metadata"]["filename"], paid_payment)
-
 
 def run():
 
@@ -64,11 +47,12 @@ def run():
     # simulate the borrower making a payment
 
     # get the loans for the borrower
-    loans = LoanPayment.query_borrower_or_lender(lender_id = None, borrower_id = borrower)
-    print(loans)
+    loan_payments = LoanPayment.query_borrower_or_lender(lender_id = None, borrower_id = borrower)
+    loan_payments = LoanPayment.flatten_query_results(loan_payments)
 
-    # # # make a payment
-    # make_payment(loans)
+    # make a payment
+    next_payment = LoanPayment.get_earliest_due(loan_payments)
+    print(datetime.datetime.fromtimestamp(next_payment.reader.due_date.ToSeconds()))
 
 if __name__ == "__main__":
     run()
