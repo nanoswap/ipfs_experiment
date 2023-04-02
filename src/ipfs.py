@@ -34,6 +34,13 @@ def read(filename: str, reader: Message) -> Message:
     return reader
 
 def write(filename: str, data: Message) -> None:
+    """
+    Update an existing file
+
+    Args:
+        filename (str): The file to update
+        data (Message): The data to overwrite the file with
+    """
     # write data to a local file
     path = f"src/generated/tmp/{filename}"
     # create the subdirectories locally if they don't already exist
@@ -105,4 +112,10 @@ def list_files(prefix: str) -> List[str]:
     return files
 
 def delete(filename: str) -> None:
+    """
+    Delete a file from ipfs
+
+    Args:
+        filename (str): The filename to delete
+    """
     subprocess.run(["ipfs", "files", "rm", "-r", f"{IPFS_HOME}/{filename}"], capture_output=True)

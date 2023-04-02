@@ -1,4 +1,4 @@
-
+from __future__ import annotations
 import ipfs
 from google.protobuf.message import Message
 
@@ -7,15 +7,15 @@ class IpfsFile:
     writer: Message
     reader: Message
 
-    def read(self: object) -> None:
+    def read(self) -> None:
         ipfs.read(self.filename, self.reader)
 
-    def write(self: object) -> None:
+    def write(self) -> None:
         ipfs.write(self.filename, self.writer)
     
-    def add(self: object) -> None:
+    def add(self) -> None:
         ipfs.add(self.filename, self.writer)
 
-    def delete(self: object) -> None:
+    def delete(self) -> None:
         """ Only needed for local testing """
         ipfs.delete(self.filename)
