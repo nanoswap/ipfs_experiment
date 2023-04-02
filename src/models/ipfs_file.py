@@ -1,5 +1,5 @@
 from __future__ import annotations
-import ipfs
+from utils import ipfs
 from google.protobuf.message import Message
 
 class IpfsFile:

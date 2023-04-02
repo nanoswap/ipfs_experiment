@@ -4,7 +4,7 @@ from typing import Dict, Iterator, List, Literal
 from uuid import UUID
 import uuid
 import nanoswap.message.loan_pb2 as loan_pb2
-import ipfs
+from utils import ipfs
 from google.protobuf.message import Message
 from google.protobuf.timestamp_pb2 import Timestamp
 from models.ipfs_file import IpfsFile

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from uuid import UUID
 import uuid
 from enum import Enum
-import ipfs
+from utils import ipfs
 
 import nanoswap.message.identity_pb2 as identity_pb2
 
