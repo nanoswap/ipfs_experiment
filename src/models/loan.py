@@ -79,7 +79,14 @@ class Loan:
             timestamp = Timestamp()
             timestamp.FromDatetime(first_payment + payment_interval * total_duration)
             # format the data
-            loan_payment = LoanPayment(self.borrower_id, self.lender_id, self.loan_id, amount_due_each_payment, timestamp)
+            loan_payment = LoanPayment(
+                borrower_id = self.borrower_id,
+                lender_id = self.lender_id,
+                loan_id = self.loan_id,
+                payment_id = None,
+                amount_due = amount_due_each_payment,
+                due_date = timestamp
+            )
             self.payment_schedule.append(loan_payment)
             # write the data to ipfs
             loan_payment.add()

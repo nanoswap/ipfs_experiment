@@ -22,27 +22,30 @@ class LoanPayment(IpfsFile):
     writer: Message
     reader: Message = loan_pb2.LoanPayment()
 
-    def __init__(self: object, borrower_id: UUID, lender_id: UUID, loan_id: UUID, amount_due: int = None, due_date: Timestamp = None) -> None:
+    def __init__(self: object, borrower_id: UUID, lender_id: UUID, loan_id: UUID, payment_id: UUID = None, amount_due: int = None, due_date: Timestamp = None) -> None:
         self.borrower_id = borrower_id
         self.lender_id = lender_id
         self.loan_id = loan_id
-        self.payment_id = uuid.uuid4()
+
+        self.payment_id = payment_id if payment_id else uuid.uuid4()
+        self.filename = f"loan/borrower_{self.borrower_id}.lender_{self.lender_id}/loan_{self.loan_id}/payment_{self.payment_id}"
 
         if amount_due and due_date:
             self.writer = loan_pb2.LoanPayment(amount_due = amount_due, due_date = due_date)
         else:
+            self.filename = f"loan/borrower_{self.borrower_id}.lender_{self.lender_id}/loan_{self.loan_id}/payment_{self.payment_id}"
             self.writer = None
-
-        self.filename = f"loan/borrower_{self.borrower_id}.lender_{self.lender_id}/loan_{self.loan_id}/payment_{self.payment_id}"
 
     @staticmethod
     def open(filename: str) -> object:
+        print(filename.split("/")[3].split("_")[1])
         loan_payment = LoanPayment(
             borrower_id=filename.split("/")[1].split(".")[0].split("_")[1],
             lender_id=filename.split("/")[1].split(".")[1].split("_")[1],
-            loan_id=filename.split("/")[2].split("_")[1]
+            loan_id=filename.split("/")[2].split("_")[1],
+            payment_id=filename.split("/")[3].split("_")[1]
         )
-        ipfs.read(filename, loan_payment.reader)
+        loan_payment.read()
         return loan_payment
     
     @staticmethod
@@ -56,11 +59,12 @@ class LoanPayment(IpfsFile):
             else:
                 return "DUE"
 
-        data = {'borrower': [], 'lender': [], 'loan': [], 'amount_due': [], 'due_date': [], 'state': []}
+        data = {'borrower': [], 'lender': [], 'loan': [], 'payment': [], 'amount_due': [], 'due_date': [], 'state': []}
         for payment in loan_payments:
             data['borrower'].append(payment.borrower_id)
             data['lender'].append(payment.lender_id)
             data['loan'].append(payment.loan_id)
+            data['payment'].append(payment.payment_id)
             data['amount_due'].append(payment.reader.amount_due)
             data['due_date'].append(datetime.fromtimestamp(payment.reader.due_date.ToSeconds()))
             data['state'].append(trx_state(payment.reader.transaction))
