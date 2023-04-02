@@ -33,6 +33,9 @@ class LoanPayment(IpfsFile):
         ) -> None:
         """
         Create a new Loan Payment
+
+        Call `.write()` to write the data to IPFS.
+        Call `.read()` to read data from IPFS.
         
         Args:
             self (object): Static LoanPayment
@@ -53,11 +56,8 @@ class LoanPayment(IpfsFile):
         self.filename = f"loan/borrower_{self.borrower_id}.lender_{self.lender_id}/loan_{self.loan_id}/payment_{self.payment_id}"
 
         if amount_due and due_date:
-            # call .write() to write the new data
             self.writer = loan_pb2.LoanPayment(amount_due = amount_due, due_date = due_date)
         else:
-            # call .read() to read the data for this filename
-            self.filename = f"loan/borrower_{self.borrower_id}.lender_{self.lender_id}/loan_{self.loan_id}/payment_{self.payment_id}"
             self.writer = None
 
     @staticmethod
