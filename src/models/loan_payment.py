@@ -1,6 +1,6 @@
-
+from __future__ import annotations
 from dataclasses import dataclass
-from typing import Dict, Iterator, List, Literal, Self
+from typing import Dict, Iterator, List, Literal
 from uuid import UUID
 import uuid
 import nanoswap.message.loan_pb2 as loan_pb2
@@ -23,7 +23,7 @@ class LoanPayment(IpfsFile):
     reader: Message = loan_pb2.LoanPayment()
 
     def __init__(
-            self: object,
+            self,
             borrower_id: UUID,
             lender_id: UUID,
             loan_id: UUID,
@@ -61,7 +61,7 @@ class LoanPayment(IpfsFile):
             self.writer = None
 
     @staticmethod
-    def open(filename: str) -> object:
+    def open(filename: str) -> LoanPayment:
         """
         Parse the filename into a LoanPayment object
 
@@ -69,7 +69,7 @@ class LoanPayment(IpfsFile):
             filename (str): The filename to parse
 
         Returns:
-            object: The corresponding LoanPayment object
+            LoanPayment: The corresponding LoanPayment object
         """
         return LoanPayment(
             borrower_id=filename.split("/")[1].split(".")[0].split("_")[1],
@@ -79,13 +79,13 @@ class LoanPayment(IpfsFile):
         )
 
     @staticmethod
-    def to_dataframe(loan_payments: List[object]) -> pd.DataFrame:
+    def to_dataframe(loan_payments: List[LoanPayment]) -> pd.DataFrame:
         """
         Convert a list of LoanPayments to a pandas dataframe.
         This function will read the data for each file, and include it in the result.
 
         Args:
-            loan_payments (List[object]): The list of LoanPayments
+            loan_payments (List[LoanPayment]): The list of LoanPayments
 
         Returns:
             pd.DataFrame: The dataframe with the loan payment data from ipfs
@@ -114,7 +114,7 @@ class LoanPayment(IpfsFile):
         return pd.DataFrame.from_dict(data)
 
     @staticmethod
-    def query(borrower_id: UUID, lender_id: UUID, loan_id: UUID) -> Iterator[Self]:
+    def query(borrower_id: UUID, lender_id: UUID, loan_id: UUID) -> Iterator[LoanPayment]:
         """
         Get each loan payment for this loan and read the data from IPFS
 
@@ -124,7 +124,7 @@ class LoanPayment(IpfsFile):
             loan_id (UUID): The loan id
 
         Returns:
-            List[object]: The list of LoanPayment objects
+            List[LoanPayment]: The list of LoanPayment objects
         """
         path = f"loan/borrower_{borrower_id}.lender_{lender_id}/loan_{loan_id}"
         # list the loan payments for this loan
@@ -137,7 +137,7 @@ class LoanPayment(IpfsFile):
     def query_borrower_and_lender(
         borrower_id: UUID,
         lender_id: UUID
-    ) -> Dict[UUID, Iterator[Self]]:
+    ) -> Dict[UUID, Iterator[LoanPayment]]:
         """
         Get all of the loan payments for this borrower and lender
 
@@ -146,7 +146,7 @@ class LoanPayment(IpfsFile):
             lender_id (UUID): The lender credit identity
 
         Returns:
-            Dict[UUID, List[object]]: A dictionary of (key: loan id, value: the list of loan payments)
+            Dict[UUID, List[LoanPayment]]: A dictionary of (key: loan id, value: the list of loan payments)
         """
         path = f"loan/borrower_{borrower_id}.lender_{lender_id}"
         result = {}
@@ -163,7 +163,7 @@ class LoanPayment(IpfsFile):
     def query_borrower_or_lender(
         borrower_id: UUID = None,
         lender_id: UUID = None
-    ) -> Dict[str, Dict[UUID, Iterator[Self]]]:
+    ) -> Dict[str, Dict[UUID, Iterator[LoanPayment]]]:
         """
         Get the loan data for a borrower or a lender
 
@@ -176,7 +176,7 @@ class LoanPayment(IpfsFile):
             lender_id (UUID, optional): The lender credit identity. Defaults to None.
 
         Returns:
-            Dict[str, Dict[UUID, Iterator[Self]]]: A dictionary of 
+            Dict[str, Dict[UUID, Iterator[LoanPayment]]]: A dictionary of 
                 (
                     key: borrower_<borrower_id>.lender_<lender_id>,
                     value: A dictionary of (key: loan id, value: the list of loan payments)
@@ -206,16 +206,16 @@ class LoanPayment(IpfsFile):
         return result
 
     @staticmethod
-    def flatten_query_results(loan_payments: Dict[str, Dict[UUID, Iterator[Self]]]) -> List[Self]:
+    def flatten_query_results(loan_payments: Dict[str, Dict[UUID, Iterator[LoanPayment]]]) -> List[LoanPayment]:
         """
         Take the nested output from `query_borrower_or_lender` and turn it into
         a flat list of LoanPayment data.
 
         Args:
-            loan_payments (Dict[str, Dict[UUID, Iterator[Self]]]): The loan payment metadata
+            loan_payments (Dict[str, Dict[UUID, Iterator[LoanPayment]]]): The loan payment metadata
 
         Returns:
-            List[Self]: The list of LoanPayments
+            List[LoanPayment]: The list of LoanPayments
         """
         result = []
         # borrower_<borrower_id>.lender_<lender_id> folder
@@ -229,16 +229,16 @@ class LoanPayment(IpfsFile):
         return result
 
     @staticmethod
-    def get_earliest_due(loan_payments: List[Self], read_from_ipfs: bool = False) -> Self:
+    def get_earliest_due(loan_payments: List[LoanPayment], read_from_ipfs: bool = False) -> LoanPayment:
         """
         For the list of loan payments, get the one with the earliest due date
 
         Args:
-            loan_payments (List[Self]): The list of LoanPayment's to filter
+            loan_payments (List[LoanPayment]): The list of LoanPayment's to filter
             read_from_ipfs (bool): If true, call `.read()` on each loan payment. Defaults to False.
 
         Returns:
-            Self: The earliest LoanPayment object.
+            LoanPayment: The earliest LoanPayment object.
         """
         earliest = sys.maxsize
         result = None
