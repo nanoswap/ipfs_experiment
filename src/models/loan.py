@@ -24,7 +24,7 @@ class Loan:
             payment_interval_count: int
         ):
         """
-        Construct a new loan and write it to ipfs
+        Construct a new loan and it's payment schedule
 
         Args:
             borrower (str): Credit id of the borrower end-user
