@@ -1,4 +1,5 @@
 import requests
+import uuid
 
 rpc_network = "http://127.0.0.1:17076"
 session = requests.Session()
@@ -72,7 +73,7 @@ def send(wallet, source, destination, amount):
         "id": str(uuid.uuid5(uuid.NAMESPACE_DNS, 'nanoswap.finance'))
     }).json()
 
-def receiveable(account, count=1, threshold=1000000000000000000000000):
+def receivable(account, count=1, threshold=1000000000000000000000000):
     return session.post(rpc_network, json={
         "action": "receivable",
         "account": account,

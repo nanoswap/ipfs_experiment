@@ -19,7 +19,6 @@ class Account():
         accounts_create_response = nano.accounts_create(self.wallet)
         assert 'error' not in accounts_create_response
         
-    
     def send(self, destination, amount):
 #         assert balance(self.wallet) >= amount
        nano.send(self.wallet, self.account, destination, amount)
@@ -30,16 +29,15 @@ class Account():
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
         return process.stdout.read()
 
-
     @staticmethod
     async def receivable_promise(wallet, account):
         while True:
-            receiveable_response = nano.receiveable(account)
-            print(receiveable_response)
+            receivable_response = nano.receivable(account)
+            print(receivable_response)
             
             # todo: add block
             
-            blocks = receiveable_response["blocks"]
+            blocks = receivable_response["blocks"]
             print(blocks)
             if blocks:
                 block = list(blocks.keys())[0]
