@@ -1,5 +1,5 @@
 from utils import nano
-import subprocess
+import time
 
 class Account():
     
@@ -18,37 +18,32 @@ class Account():
         # create the account
         accounts_create_response = nano.accounts_create(self.wallet)
         assert 'error' not in accounts_create_response
-        
-    def send(self, destination, amount):
-#         assert balance(self.wallet) >= amount
-       nano.send(self.wallet, self.account, destination, amount)
-    
-    @staticmethod
-    def generate_private_key():
-        command = "LC_ALL=C cat /dev/urandom | LC_ALL=C tr -dc '0-9A-F' | LC_ALL=C head -c${1:-64}"
-        process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
-        return process.stdout.read()
 
-    @staticmethod
-    async def receivable_promise(wallet, account):
+    def send(self, destination, amount):
+        assert self.balance(self.wallet) >= amount
+        nano.send(self.wallet, self.account, destination, amount)
+
+    def add_block(self, block):
+        nano.process(block)
+        return block
+
+    async def receivable(self):
         while True:
-            receivable_response = nano.receivable(account)
+            receivable_response = nano.receivable(self.account)
             print(receivable_response)
-            
-            # todo: add block
             
             blocks = receivable_response["blocks"]
             print(blocks)
             if blocks:
                 block = list(blocks.keys())[0]
+                block = self.add_block(block)
                 break
             
             time.sleep(10)
 
-        nano.receive(wallet, account, block)
+        nano.receive(self.wallet, self.account, block)
 
-    @staticmethod
-    def balance(wallet):
+    def balance(self, wallet):
         account_info_response = nano.account_info(wallet)
         assert 'error' not in account_info_response
         return account_info_response['balance']
