@@ -1,9 +1,21 @@
 import requests
 import uuid
 from typing import Dict, Any, List
+import subprocess
 
 rpc_network: str = "http://127.0.0.1:17076"
 session: requests.Session = requests.Session()
+
+def generate_private_key() -> str:
+    """
+    Generate a private key using the /dev/urandom command.
+    
+    Returns:
+        The generated key
+    """
+    command = "LC_ALL=C cat /dev/urandom | LC_ALL=C tr -dc '0-9A-F' | LC_ALL=C head -c${1:-64}"
+    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+    return process.stdout.read()
 
 def key_expand(key: str) -> Dict[str, Any]:
     """
