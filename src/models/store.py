@@ -16,77 +16,41 @@ from models.index import Index
 @dataclass
 class Store(File):
     index: Index
-    filename: str
     writer: Message
     reader: Message
 
-    def __init__(
-            self,
-            index: Index,
-            writer: Message = None,
-            reader: Message = None
-        ) -> None:
-        """
-        Create a new Loan Payment
-        
-        Args:
-            self (object): Static LoanPayment
-            borrower_id (UUID): The borrower credit identity
-            lender_id (UUID): The lender credit identity
-            loan_id (UUID): The loan id
-            payment_id (UUID, optional): The payment id. Defaults to None.
-            amount_due (int, optional): The amount due. Defaults to None.
-            due_date (Timestamp, optional): The date that the amount is due. Defaults to None.
-        """
+    def __init__(self, index: Index, writer: Message = None, reader: Message = None) -> None:
         self.index = index
         self.writer = writer
         self.reader = reader
 
-    @staticmethod
-    def open(filename: str) -> LoanPayment:
-        """
-        Parse the filename into a LoanPayment object
+    # @staticmethod
+    # def to_dataframe(data: List[Store]) -> pd.DataFrame:
+    #     """
+    #     Convert a list of Store objects to a pandas dataframe.
+    #     This function will read the data for each file, and include it in the result.
 
-        Args:
-            filename (str): The filename to parse
+    #     Args:
+    #         data (List[Store]): The list of Store objects
 
-        Returns:
-            LoanPayment: The corresponding LoanPayment object
-        """
-        return LoanPayment(
-            borrower_id=filename.split("/")[1].split(".")[0].split("_")[1],
-            lender_id=filename.split("/")[1].split(".")[1].split("_")[1],
-            loan_id=filename.split("/")[2].split("_")[1],
-            payment_id=filename.split("/")[3].split("_")[1]
-        )
-
-    @staticmethod
-    def to_dataframe(loan_payments: List[LoanPayment]) -> pd.DataFrame:
-        """
-        Convert a list of LoanPayments to a pandas dataframe.
-        This function will read the data for each file, and include it in the result.
-
-        Args:
-            loan_payments (List[LoanPayment]): The list of LoanPayments
-
-        Returns:
-            pd.DataFrame: The dataframe with the loan payment data from ipfs
-        """
-        data = {'borrower': [], 'lender': [], 'loan': [], 'payment': [], 'amount_due': [], 'due_date': [], 'state': []}
-        for payment in loan_payments:
-            payment.read()  # read the payment data from ipfs
-            data['borrower'].append(payment.borrower_id)
-            data['lender'].append(payment.lender_id)
-            data['loan'].append(payment.loan_id)
-            data['payment'].append(payment.payment_id)
-            data['amount_due'].append(payment.reader.amount_due)
-            data['due_date'].append(datetime.fromtimestamp(payment.reader.due_date.ToSeconds()))
+    #     Returns:
+    #         pd.DataFrame: The dataframe with the loan payment data from ipfs
+    #     """
+    #     pandas_input = {'borrower': [], 'lender': [], 'loan': [], 'payment': [], 'amount_due': [], 'due_date': [], 'state': []}
+    #     for record in data:
+    #         record.read()  # read the file content from ipfs
+    #         pandas_input['borrower'].append(payment.borrower_id)
+    #         pandas_input['lender'].append(payment.lender_id)
+    #         pandas_input['loan'].append(payment.loan_id)
+    #         pandas_input['payment'].append(payment.payment_id)
+    #         pandas_input['amount_due'].append(payment.reader.amount_due)
+    #         pandas_input['due_date'].append(datetime.fromtimestamp(payment.reader.due_date.ToSeconds()))
         
-        # load the data into a pandas dataframe
-        return pd.DataFrame.from_dict(data)
+    #     # load the data into a pandas dataframe
+    #     return pd.DataFrame.from_dict(pandas_input)
 
     @staticmethod
-    def query(borrower_id: UUID, lender_id: UUID, loan_id: UUID) -> Iterator[LoanPayment]:
+    def query(borrower_id: UUID, lender_id: UUID, loan_id: UUID) -> Iterator[Store]:
         """
         Get each loan payment for this loan and read the data from IPFS
 
@@ -96,7 +60,7 @@ class Store(File):
             loan_id (UUID): The loan id
 
         Returns:
-            List[LoanPayment]: The list of LoanPayment objects
+            List[Store]: The list of Store objects
         """
         path = f"loan/borrower_{borrower_id}.lender_{lender_id}/loan_{loan_id}"
         # list the loan payments for this loan

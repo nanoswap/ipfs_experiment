@@ -1,7 +1,0 @@
-syntax = "proto3";
-package nanoswap.enum;
-
-enum Type {
-    FIZZ = 0;
-    BUZZ = 1
-}
