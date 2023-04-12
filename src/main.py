@@ -38,6 +38,7 @@ if __name__ == "__main__":
    store2.read()
    print(store2.reader)
 
+   # query for borrower and lender
    result = list(
       Store.query(
          Index(
@@ -51,3 +52,18 @@ if __name__ == "__main__":
    )
    store3 = result[0]
    print(store3.index.get_filename())
+
+   # query for only a borrower
+   result = list(
+      Store.query(
+         Index(
+            index = {
+               "borrower": borrower
+            },
+            prefix = "loan",
+            size = 2
+         )
+      )
+   )
+   print(result[0].index.get_filename())
+   # print(store3.index.get_filename())

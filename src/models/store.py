@@ -23,7 +23,7 @@ class Store(File):
         self.index = index
         self.writer = writer
         self.reader = reader
-
+    
     # @staticmethod
     # def to_dataframe(data: List[Store]) -> pd.DataFrame:
     #     """
@@ -50,17 +50,32 @@ class Store(File):
     #     return pd.DataFrame.from_dict(pandas_input)
 
     @staticmethod
-    def query(index: Index) -> Iterator[Store]:
+    def query(index: Index) -> List[Store]:
         path = index.get_filename()
-        print(path)
+
+        result = []
         for filename in utils.list_files(path):
             has_prefix = index.prefix is not None
-            yield Store(
-                index = Index.from_filename(
-                    f"{path}/{filename}",
-                    has_prefix = has_prefix
-                )
+
+            next_index = Index.from_filename(
+                f"{path}/{filename}",
+                has_prefix = has_prefix
             )
+
+            # check for partial queries
+            if index.is_partial() and not index.matches(next_index):
+                continue
+            
+            # Check for subdirectories
+            if [filename] == utils.list_files(f"{path}/{filename}"):
+                # Base case, no subdirectories found
+                result.append(Store(index = next_index))
+
+            else:
+                result += Store.query(index = next_index)
+
+        return result
+            
 
     @staticmethod
     def query_borrower_and_lender(
