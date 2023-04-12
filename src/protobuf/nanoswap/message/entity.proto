@@ -1,0 +1,8 @@
+syntax = "proto3";
+package nanoswap.message;
+import "nanoswap/enum/issuers.proto";
+
+message Example {
+    nanoswap.enum.Type type = 1;
+    string content = 2;
+}

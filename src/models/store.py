@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from typing import Dict, Iterator, List, Literal
 from uuid import UUID
 import uuid
-import nanoswap.message.loan_pb2 as loan_pb2
-import ipfs
+import nanoswap.message.entity_pb2 as loan_pb2
+from utils import ipfs
 from google.protobuf.message import Message
 from google.protobuf.timestamp_pb2 import Timestamp
-from models.ipfs_file import IpfsFile
+from models.file import IpfsFile
 import sys
 import pandas as pd
 from datetime import datetime
@@ -90,15 +90,6 @@ class LoanPayment(IpfsFile):
         Returns:
             pd.DataFrame: The dataframe with the loan payment data from ipfs
         """
-
-        def trx_state(transaction: str) -> Literal["PAID", "DUE"]:
-            # TODO: check XNO RPC to see if the transaction
-            #   was made on time, late, or if it's invalid
-            if transaction:
-                return "PAID"
-            else:
-                return "DUE"
-
         data = {'borrower': [], 'lender': [], 'loan': [], 'payment': [], 'amount_due': [], 'due_date': [], 'state': []}
         for payment in loan_payments:
             payment.read()  # read the payment data from ipfs
@@ -108,7 +99,6 @@ class LoanPayment(IpfsFile):
             data['payment'].append(payment.payment_id)
             data['amount_due'].append(payment.reader.amount_due)
             data['due_date'].append(datetime.fromtimestamp(payment.reader.due_date.ToSeconds()))
-            data['state'].append(trx_state(payment.reader.transaction))  # check the transaction field to see if they payment was made
         
         # load the data into a pandas dataframe
         return pd.DataFrame.from_dict(data)
