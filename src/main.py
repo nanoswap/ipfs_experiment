@@ -12,6 +12,7 @@ if __name__ == "__main__":
 
    borrower = uuid.uuid4()
    lender = uuid.uuid4()
+   loan = uuid.uuid4()
 
    index = Index(
       prefix="loan",
@@ -20,7 +21,7 @@ if __name__ == "__main__":
          "lender": lender
       }, subindex=Index(
          index={
-               "loan": uuid.uuid4()
+               "loan": loan
          }, subindex=Index(
                index={
                   "payment": uuid.uuid4()
@@ -66,4 +67,35 @@ if __name__ == "__main__":
       )
    )
    print(result[0].index.get_filename())
-   # print(store3.index.get_filename())
+
+   # query for only a lender
+   result = list(
+      Store.query(
+         Index(
+            index = {
+               "lender": lender
+            },
+            prefix = "loan",
+            size = 2
+         )
+      )
+   )
+   print(result[0].index.get_filename())
+
+   # get payments for a loan
+   result = list(
+      Store.query(
+         Index(
+            prefix="loan",
+            index={
+               "borrower": borrower,
+               "lender": lender
+            }, subindex=Index(
+               index={
+                     "loan": loan
+               }
+            )
+         )
+      )
+   )
+   print(result[0].index.get_filename())
