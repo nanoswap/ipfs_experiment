@@ -50,24 +50,17 @@ class Store(File):
     #     return pd.DataFrame.from_dict(pandas_input)
 
     @staticmethod
-    def query(borrower_id: UUID, lender_id: UUID, loan_id: UUID) -> Iterator[Store]:
-        """
-        Get each loan payment for this loan and read the data from IPFS
-
-        Args:
-            borrower_id (UUID): The borrower credit identity
-            lender_id (UUID): The lender credit identity
-            loan_id (UUID): The loan id
-
-        Returns:
-            List[Store]: The list of Store objects
-        """
-        path = f"loan/borrower_{borrower_id}.lender_{lender_id}/loan_{loan_id}"
-        # list the loan payments for this loan
-        for filename in ipfs.list_files(path):
-            if filename:
-                # create a LoanPayment object from the filename metadata
-                yield LoanPayment.open(f"{path}/{filename}")
+    def query(index: Index) -> Iterator[Store]:
+        path = index.get_filename()
+        print(path)
+        for filename in utils.list_files(path):
+            has_prefix = index.prefix is not None
+            yield Store(
+                index = Index.from_filename(
+                    f"{path}/{filename}",
+                    has_prefix = has_prefix
+                )
+            )
 
     @staticmethod
     def query_borrower_and_lender(

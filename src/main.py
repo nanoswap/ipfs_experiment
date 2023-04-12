@@ -9,11 +9,15 @@ Faker.seed(0)
 fake = Faker()
 
 if __name__ == "__main__":
+
+   borrower = uuid.uuid4()
+   lender = uuid.uuid4()
+
    index = Index(
       prefix="loan",
       index={
-         "borrower": uuid.uuid4(),
-         "lender": uuid.uuid4()
+         "borrower": borrower,
+         "lender": lender
       }, subindex=Index(
          index={
                "loan": uuid.uuid4()
@@ -33,3 +37,17 @@ if __name__ == "__main__":
    store2 = Store(index=index, reader=Example())
    store2.read()
    print(store2.reader)
+
+   result = list(
+      Store.query(
+         Index(
+            index = {
+               "borrower": borrower,
+               "lender": lender
+            },
+            prefix = "loan"
+         )
+      )
+   )
+   store3 = result[0]
+   print(store3.index.get_filename())
