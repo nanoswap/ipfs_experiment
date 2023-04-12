@@ -1,9 +1,10 @@
 from src import utils
-from unittest.mock import patch, Mock, MagicMock, call
+from unittest.mock import patch, Mock, MagicMock, call, mock_open
 from google.protobuf.message import Message
 import os
 
-def test_mkdir():
+@patch('subprocess.run')
+def test_mkdir(mock_subprocess: MagicMock) -> None:
     """ Test the `utils.mkdir` function """
 
     # Define the expected directory name
@@ -11,24 +12,17 @@ def test_mkdir():
 
     # Define the expected command and output of the subprocess
     expected_command = ["ipfs", "files", "mkdir", directory_name]
-    expected_output = b""
+    mock_subprocess.return_value.stdout = b""
 
-    # Patch the subprocess.run() function to return the expected results
-    with patch("subprocess.run") as mock_run:
-        mock_result = mock_run.return_value
-        mock_result.stdout = expected_output
+    # Call the mkdir() function with the expected directory name
+    utils.mkdir(directory_name)
 
-        # Call the mkdir() function with the expected directory name
-        utils.mkdir(directory_name)
+    # Assert that the subprocess was called with the expected command
+    mock_subprocess.assert_called_once_with(expected_command)
 
-        # Assert that the subprocess was called with the expected command
-        mock_run.assert_called_once_with(expected_command)
-
-def test_read():
+@patch('subprocess.run')
+def test_read(mock_subprocess: MagicMock) -> None:
     """ Test the `utils.read` function """
-
-    # Create a mock Message object to use in the test
-    mock_message = Mock(spec=Message)
 
     # Define the expected filename and file contents
     filename = "test.txt"
@@ -36,124 +30,85 @@ def test_read():
 
     # Define the expected command and output of the subprocess
     expected_command = ["ipfs", "files", "read", f"{utils.IPFS_HOME}/{filename}"]
-    expected_output = file_contents
+    mock_subprocess.return_value.stdout = file_contents
 
-    # Patch the subprocess.run() function to return the expected output
-    with patch("subprocess.run") as mock_run:
-        mock_result = Mock()
-        mock_result.stdout = expected_output
-        mock_run.return_value = mock_result
+    # Call the read() function with the mock Message object
+    result = utils.read(filename)
 
-        # Call the read() function with the mock Message object
-        result = utils.read(filename, mock_message)
+    # Assert that the subprocess was called with the expected command
+    mock_subprocess.assert_called_once_with(expected_command, capture_output=True)
 
-        # Assert that the subprocess was called with the expected command
-        mock_run.assert_called_once_with(expected_command, capture_output=True)
+    # Assert that the read() function returned the mock Message object
+    assert result == file_contents
 
-        # Assert that the Message object was called with the expected file contents
-        mock_message.ParseFromString.assert_called_once_with(expected_output)
-
-        # Assert that the read() function returned the mock Message object
-        assert result == mock_message
-
-def test_write():
+@patch('subprocess.run')
+@patch('builtins.open', mock_open())
+def test_write(mock_subprocess: MagicMock) -> None:
     """ Test the `utils.write` function """
 
-    # Define the expected filename and data
-    filename = "test.txt"
-    file_contents = b"Hello, world!"
-    data = MagicMock()
-    data.SerializeToString.return_value = file_contents
+    filename = "test_write.txt"
+    data = b"some contents"
 
-    # Define the expected commands and outputs of the subprocess calls
-    write_command = ["ipfs", "files", "write", "-t", f"{utils.IPFS_HOME}/{filename}", "src/generated/tmp/test.txt"]
-    write_output = b""
-    rm_command = ["rm", "src/generated/tmp/test.txt"]
+    # Mock subprocess to check if the command is called
+    mock_subprocess.return_value.stdout.decode.return_value = ""
+    mock_subprocess.return_value.stderr.decode.return_value = ""
 
-    # Patch the subprocess.run() function to return the expected results
-    with patch("subprocess.run") as mock_run:
-        # Mock the first call to subprocess.run() that writes the file to disk
-        mock_write_result = MagicMock()
-        mock_write_result.stdout = write_output
-        mock_run.side_effect = [mock_write_result, None]
+    # Call the function to update the file
+    utils.write(filename, data)
 
-        # Call the write() function with the expected filename and data
-        utils.write(filename, data)
+    # Check if the subprocess is called with the expected arguments
+    mock_subprocess.assert_has_calls([
+        call(["ipfs", "files", "write", "-t", f"{utils.IPFS_HOME}/{filename}", f"src/generated/tmp/{filename}"], capture_output=True),
+        call(["rm", f"src/generated/tmp/{filename}"])
+    ])
 
-        # Assert that subprocess.run() was called twice with the expected commands
-        mock_run.assert_has_calls([
-            call(write_command, capture_output=True),
-            call(rm_command)
-        ])
-
-        # Reset the side_effect of the mock_run object
-        mock_run.side_effect = None
-
-        # Mock the second call to subprocess.run() that uploads the file to IPFS
-        mock_ipfs_result = MagicMock()
-        mock_ipfs_result.stdout = write_output
-        mock_run.return_value = mock_ipfs_result
-
-        # Call the write() function with the expected filename and data
-        utils.write(filename, data)
-
-        # Assert that subprocess.run() was called twice with the expected commands
-        mock_run.assert_has_calls([
-            call(write_command, capture_output=True),
-            call(rm_command),
-            call(write_command, capture_output=True),
-            call(rm_command),
-        ])
-
-def test_add():
+@patch('subprocess.run')
+def test_add(mock_subprocess: MagicMock) -> None:
     """ Test the `utils.add` function """
 
     # Mock the data for the protobuf object
     file_contents = b"some contents"
-    data = Mock()
-    data.SerializeToString.return_value = file_contents
 
+    # Call the function
+    filename = "data/test.txt"
+    utils.add(filename, file_contents)
 
-    # Patch the subprocess.run() function to return the expected results
-    with patch("subprocess.run") as mock_run:
-        # Call the function
-        filename = "data/test.txt"
-        utils.add(filename, data)
-
-        # Check the calls to subprocess.run
-        mock_run.assert_has_calls([
-            call(["ipfs", "files", "mkdir", "-p", f"{utils.IPFS_HOME}/data"]),
-            call(["ipfs", "add", "-r", f"src/generated/tmp/{filename}", "--to-files", f"{utils.IPFS_HOME}/{filename}"], capture_output=True),
-            call(["rm", f"src/generated/tmp/{filename}"])
-        ])
-
-def test_does_file_exist():
-    """ Test the `utils.does_file_exist` function """
-
-    with patch("subprocess.run") as mock_subprocess:
-        # Case where file exists
-        mock_subprocess.return_value.stdout.decode.return_value = "NumLinks: 1\nBlockSize: 12\nType: file\n"
-        assert utils.does_file_exist("existing_file.txt") == True
-
-        # Check that the correct command is called with the correct argument
-        expected_cmd = ["ipfs", "files", "stat", f"{utils.IPFS_HOME}/existing_file.txt"]
-        mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
-
-def test_does_file_not_exist():
-    """ Test the `utils.does_file_exist` function """
-
-    with patch("subprocess.run") as mock_subprocess:
-        # Case where file does not exist
-        mock_subprocess.return_value.returncode = 1
-        mock_subprocess.return_value.stderr.decode.return_value = "file does not exist"
-        assert utils.does_file_exist("non_existing_file.txt") == False
-
-        # Check that the correct command is called with the correct argument
-        expected_cmd = ["ipfs", "files", "stat", f"{utils.IPFS_HOME}/non_existing_file.txt"]
-        mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
+    # Check the calls to subprocess.run
+    mock_subprocess.assert_has_calls([
+        call(["ipfs", "files", "mkdir", "-p", f"{utils.IPFS_HOME}/data"]),
+        call(["ipfs", "add", "-r", f"src/generated/tmp/{filename}", "--to-files", f"{utils.IPFS_HOME}/{filename}"], capture_output=True),
+        call(["rm", f"src/generated/tmp/{filename}"])
+    ])
 
 @patch('subprocess.run')
-def test_list_files(mock_subprocess: MagicMock):
+def test_does_file_exist(mock_subprocess: MagicMock) -> None:
+    """ Test the `utils.does_file_exist` function """
+
+    # Case where file exists
+    mock_subprocess.return_value.stdout.decode.return_value = "NumLinks: 1\nBlockSize: 12\nType: file\n"
+    assert utils.does_file_exist("existing_file.txt") == True
+
+    # Check that the correct command is called with the correct argument
+    expected_cmd = ["ipfs", "files", "stat", f"{utils.IPFS_HOME}/existing_file.txt"]
+    mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
+
+@patch('subprocess.run')
+def test_does_file_not_exist(mock_subprocess: MagicMock) -> None:
+    """ Test the `utils.does_file_exist` function """
+
+    # Case where file does not exist
+    mock_subprocess.return_value.returncode = 1
+    mock_subprocess.return_value.stderr.decode.return_value = "file does not exist"
+    assert utils.does_file_exist("non_existing_file.txt") == False
+
+    # Check that the correct command is called with the correct argument
+    expected_cmd = ["ipfs", "files", "stat", f"{utils.IPFS_HOME}/non_existing_file.txt"]
+    mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
+
+@patch('subprocess.run')
+def test_list_files(mock_subprocess: MagicMock) -> None:
+    """ Test the `utils.list_files` function """
+
     # Set up the mock subprocess
     process_mock = MagicMock()
     process_mock.returncode = 0
@@ -168,3 +123,49 @@ def test_list_files(mock_subprocess: MagicMock):
     process_mock.stdout.decode.return_value = ""
     result = utils.list_files("empty_directory")
     assert result == []
+
+@patch('subprocess.run')
+def test_delete_existing_file(mock_subprocess: MagicMock) -> None:
+    """ Test the `utils.delete` function """
+
+    filename = "test_delete_existing_file.txt"
+    data = b"some contents"
+
+    mock_subprocess.return_value.stdout.decode.return_value = data
+    mock_subprocess.return_value.stderr.decode.return_value = ""
+
+    # Create a file
+    utils.add(filename, data)
+
+    # Check that the file exists
+    mock_subprocess.return_value.returncode = 0
+    assert utils.does_file_exist(filename)
+
+    # Delete the file
+    utils.delete(filename)
+
+    # Check that the file no longer exists
+    mock_subprocess.return_value.returncode = 1
+    mock_subprocess.return_value.stderr.decode.return_value = "file does not exist"
+    assert not utils.does_file_exist(filename)
+
+@patch('subprocess.run')
+def test_delete_nonexistent_file(mock_subprocess: MagicMock) -> None:
+    """ Test the `utils.delete` function """
+
+    filename = "nonexistent_file.txt"
+
+    # Patch the subprocess.run method to return a message indicating that the file does not exist
+    mock_process = MagicMock()
+    mock_process.returncode = 1
+    mock_process.stderr = b'file does not exist\n'
+    mock_subprocess.return_value = mock_process
+
+    # Check that the file does not exist
+    assert not utils.does_file_exist(filename)
+
+    # Delete a nonexistent file
+    utils.delete(filename)
+
+    # Check that the file (still) does not exist
+    assert not utils.does_file_exist(filename)
