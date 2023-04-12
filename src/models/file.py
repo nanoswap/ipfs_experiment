@@ -1,21 +1,21 @@
 from __future__ import annotations
-from utils import ipfs
+import utils
 from google.protobuf.message import Message
 
-class IpfsFile:
+class File:
     filename: str
     writer: Message
     reader: Message
 
     def read(self) -> None:
-        ipfs.read(self.filename, self.reader)
+        self.reader.ParseFromString(utils.read(self.filename))
 
     def write(self) -> None:
-        ipfs.write(self.filename, self.writer)
+        utils.write(self.filename, self.writer.SerializeToString())
     
     def add(self) -> None:
-        ipfs.add(self.filename, self.writer)
+        utils.add(self.filename, self.writer.SerializeToString())
 
     def delete(self) -> None:
         """ Only needed for local testing """
-        ipfs.delete(self.filename)
+        utils.delete(self.filename)

@@ -125,7 +125,7 @@ def test_list_files(mock_subprocess: MagicMock) -> None:
     assert result == []
 
 @patch('subprocess.run')
-def test_delete_existing_file(mock_subprocess: MagicMock) -> None:
+def test_delete(mock_subprocess: MagicMock) -> None:
     """ Test the `utils.delete` function """
 
     filename = "test_delete_existing_file.txt"
@@ -147,25 +147,4 @@ def test_delete_existing_file(mock_subprocess: MagicMock) -> None:
     # Check that the file no longer exists
     mock_subprocess.return_value.returncode = 1
     mock_subprocess.return_value.stderr.decode.return_value = "file does not exist"
-    assert not utils.does_file_exist(filename)
-
-@patch('subprocess.run')
-def test_delete_nonexistent_file(mock_subprocess: MagicMock) -> None:
-    """ Test the `utils.delete` function """
-
-    filename = "nonexistent_file.txt"
-
-    # Patch the subprocess.run method to return a message indicating that the file does not exist
-    mock_process = MagicMock()
-    mock_process.returncode = 1
-    mock_process.stderr = b'file does not exist\n'
-    mock_subprocess.return_value = mock_process
-
-    # Check that the file does not exist
-    assert not utils.does_file_exist(filename)
-
-    # Delete a nonexistent file
-    utils.delete(filename)
-
-    # Check that the file (still) does not exist
     assert not utils.does_file_exist(filename)

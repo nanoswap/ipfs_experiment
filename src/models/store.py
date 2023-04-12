@@ -3,33 +3,28 @@ from dataclasses import dataclass
 from typing import Dict, Iterator, List, Literal
 from uuid import UUID
 import uuid
-import nanoswap.message.entity_pb2 as loan_pb2
-from utils import ipfs
+import utils
 from google.protobuf.message import Message
 from google.protobuf.timestamp_pb2 import Timestamp
-from models.file import IpfsFile
+from models.file import File
 import sys
 import pandas as pd
 from datetime import datetime
+from models.index import Index
+
 
 @dataclass
-class LoanPayment(IpfsFile):
-    borrower_id: UUID
-    lender_id: UUID
-    payment_id: UUID
-    loan_id: UUID
+class Store(File):
+    index: Index
     filename: str
     writer: Message
-    reader: Message = loan_pb2.LoanPayment()
+    reader: Message
 
     def __init__(
             self,
-            borrower_id: UUID,
-            lender_id: UUID,
-            loan_id: UUID,
-            payment_id: UUID = None,
-            amount_due: int = None,
-            due_date: Timestamp = None
+            index: Index,
+            writer: Message = None,
+            reader: Message = None
         ) -> None:
         """
         Create a new Loan Payment
@@ -43,22 +38,9 @@ class LoanPayment(IpfsFile):
             amount_due (int, optional): The amount due. Defaults to None.
             due_date (Timestamp, optional): The date that the amount is due. Defaults to None.
         """
-
-        self.borrower_id = borrower_id
-        self.lender_id = lender_id
-        self.loan_id = loan_id
-
-        # generate a new payment_id if it wasn't provided
-        self.payment_id = payment_id if payment_id else uuid.uuid4()
-        self.filename = f"loan/borrower_{self.borrower_id}.lender_{self.lender_id}/loan_{self.loan_id}/payment_{self.payment_id}"
-
-        if amount_due and due_date:
-            # call .write() to write the new data
-            self.writer = loan_pb2.LoanPayment(amount_due = amount_due, due_date = due_date)
-        else:
-            # call .read() to read the data for this filename
-            self.filename = f"loan/borrower_{self.borrower_id}.lender_{self.lender_id}/loan_{self.loan_id}/payment_{self.payment_id}"
-            self.writer = None
+        self.index = index
+        self.writer = writer
+        self.reader = reader
 
     @staticmethod
     def open(filename: str) -> LoanPayment:
