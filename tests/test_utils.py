@@ -1,4 +1,3 @@
-""" Written by ChatGPT """
 from src import utils
 from unittest.mock import patch, Mock, MagicMock, call
 from google.protobuf.message import Message
@@ -152,3 +151,20 @@ def test_does_file_not_exist():
         # Check that the correct command is called with the correct argument
         expected_cmd = ["ipfs", "files", "stat", f"{utils.IPFS_HOME}/non_existing_file.txt"]
         mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
+
+@patch('subprocess.run')
+def test_list_files(mock_subprocess: MagicMock):
+    # Set up the mock subprocess
+    process_mock = MagicMock()
+    process_mock.returncode = 0
+    process_mock.stdout.decode.return_value = "file1.txt\nfile2.txt\nfile3.txt\n"
+    mock_subprocess.return_value = process_mock
+
+    # Test case where files exist
+    result = utils.list_files("my_directory")
+    assert result == ["file1.txt", "file2.txt", "file3.txt"]
+
+    # Test case where no files exist
+    process_mock.stdout.decode.return_value = ""
+    result = utils.list_files("empty_directory")
+    assert result == []
