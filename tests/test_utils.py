@@ -105,3 +105,50 @@ def test_write():
             call(write_command, capture_output=True),
             call(rm_command),
         ])
+
+def test_add():
+    """ Test the `utils.add` function """
+
+    # Mock the data for the protobuf object
+    file_contents = b"some contents"
+    data = Mock()
+    data.SerializeToString.return_value = file_contents
+
+
+    # Patch the subprocess.run() function to return the expected results
+    with patch("subprocess.run") as mock_run:
+        # Call the function
+        filename = "data/test.txt"
+        utils.add(filename, data)
+
+        # Check the calls to subprocess.run
+        mock_run.assert_has_calls([
+            call(["ipfs", "files", "mkdir", "-p", f"{utils.IPFS_HOME}/data"]),
+            call(["ipfs", "add", "-r", f"src/generated/tmp/{filename}", "--to-files", f"{utils.IPFS_HOME}/{filename}"], capture_output=True),
+            call(["rm", f"src/generated/tmp/{filename}"])
+        ])
+
+def test_does_file_exist():
+    """ Test the `utils.does_file_exist` function """
+
+    with patch("subprocess.run") as mock_subprocess:
+        # Case where file exists
+        mock_subprocess.return_value.stdout.decode.return_value = "NumLinks: 1\nBlockSize: 12\nType: file\n"
+        assert utils.does_file_exist("existing_file.txt") == True
+
+        # Check that the correct command is called with the correct argument
+        expected_cmd = ["ipfs", "files", "stat", f"{utils.IPFS_HOME}/existing_file.txt"]
+        mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
+
+def test_does_file_not_exist():
+    """ Test the `utils.does_file_exist` function """
+
+    with patch("subprocess.run") as mock_subprocess:
+        # Case where file does not exist
+        mock_subprocess.return_value.returncode = 1
+        mock_subprocess.return_value.stderr.decode.return_value = "file does not exist"
+        assert utils.does_file_exist("non_existing_file.txt") == False
+
+        # Check that the correct command is called with the correct argument
+        expected_cmd = ["ipfs", "files", "stat", f"{utils.IPFS_HOME}/non_existing_file.txt"]
+        mock_subprocess.assert_called_with(expected_cmd, capture_output=True)

@@ -92,9 +92,8 @@ def does_file_exist(filename: str) -> bool:
     Returns:
         bool: True if the file exists, false otherwise
     """
-    filename = f"/{filename}"
     process = subprocess.run(["ipfs", "files", "stat", f"{IPFS_HOME}/{filename}"], capture_output=True)
-    does_not_exist = ( process.returncode == 1 and "file does not exist" in str(process.stderr) )
+    does_not_exist = ( process.returncode == 1 and "file does not exist" in process.stderr.decode() )
     return not does_not_exist
 
 def list_files(prefix: str) -> List[str]:
