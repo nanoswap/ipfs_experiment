@@ -11,25 +11,35 @@ IPFS_HOME =  "/data"
 @dataclass
 class Ipfs():
 
-    def __init__(self, host: str = "http://localhost", port: int = 5001, version: str = "v0"):
+    def __init__(self, host: str = "http://127.0.0.1", port: int = 5001, version: str = "v0"):
         self.host = host
         self.port = port
         self.version = version
 
-    def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None):
+    def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None, raise_for_status: bool = True):
         url = f"{self.host}:{self.port}/api/{self.version}/{endpoint}"
         response = requests.request(method, url, params=params, data=json.dumps(data))
-        response.raise_for_status()
-        return response.json()
+        if raise_for_status:
+            response.raise_for_status()
+        return response.content
 
-    def mkdir(self, directory_name: str) -> None:
+    def mkdir(self, directory_name: str, with_home = True) -> None:
         """
         Create a directory in ipfs
 
         Args:
             directory_name (str): The name of the directory to create
         """
-        subprocess.run(["ipfs", "files", "mkdir", directory_name])
+        path = f"{IPFS_HOME}/{directory_name}" if with_home else f"/{directory_name}"
+        try:
+            self._make_request(
+                method = "POST",
+                endpoint = "files/mkdir",
+                params = {"arg": path},
+                raise_for_status = False
+            )
+        except requests.exceptions.HTTPError as e:
+            raise RuntimeError(e.response._content.decode())
 
     def read(self, filename: str) -> bytes:
         """
@@ -107,9 +117,19 @@ class Ipfs():
         Returns:
             bool: True if the file exists, false otherwise
         """
-        process = subprocess.run(["ipfs", "files", "stat", f"{IPFS_HOME}/{filename}"], capture_output=True)
-        does_not_exist = ( process.returncode == 1 and "file does not exist" in process.stderr.decode() )
-        return not does_not_exist
+        try:
+            response = self._make_request(
+                method = "POST",
+                endpoint = "files/stat",
+                params = {"arg": f"{IPFS_HOME}/{filename}"},
+                raise_for_status = False
+            )
+            return True
+        except requests.exceptions.HTTPError as e:
+            if 'file does not exist' in e.response._content.decode():
+                return False
+
+            raise RuntimeError(e.response._content.decode())
 
     def list_files(self, prefix: str) -> List[str]:
         """
