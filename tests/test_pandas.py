@@ -1,8 +1,8 @@
 import pandas as pd
 import pytest
 from typing import List
-from src.models.store import Store
-from src.models.index import Index
+from src.store import Store
+from src.index import Index
 from protobuf.sample_pb2 import Example, Type
 import uuid
 

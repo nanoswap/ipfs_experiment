@@ -1,5 +1,5 @@
 from __future__ import annotations
-import src.utils as utils
+from src import ipfs
 from google.protobuf.message import Message
 import errno
 import os
@@ -10,18 +10,18 @@ class File:
 
     def read(self) -> None:
         filename = self.index.get_filename()
-        result = utils.read(filename)
+        result = ipfs.read(filename)
         if not result:
             raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
 
         self.reader.ParseFromString(result)
 
     def write(self) -> None:
-        utils.write(self.index.get_filename(), self.writer.SerializeToString())
+        ipfs.write(self.index.get_filename(), self.writer.SerializeToString())
     
     def add(self) -> None:
-        utils.add(self.index.get_filename(), self.writer.SerializeToString())
+        ipfs.add(self.index.get_filename(), self.writer.SerializeToString())
 
     def delete(self) -> None:
         """ Only needed for local testing """
-        utils.delete(self.index.get_filename())
+        ipfs.delete(self.index.get_filename())

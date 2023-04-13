@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 from typing import Dict
 from uuid import UUID
 
-from src.models.index import Index
+from src.index import Index
 
 class TestIndex(unittest.TestCase):
     def setUp(self):

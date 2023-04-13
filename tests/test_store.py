@@ -1,8 +1,8 @@
 import unittest
 from faker import Faker
 import uuid
-from src.models.index import Index
-from src.models.store import Store
+from src.index import Index
+from src.store import Store
 from protobuf.sample_pb2 import Example, Type
 
 Faker.seed(0)

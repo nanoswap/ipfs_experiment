@@ -1,10 +1,10 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, Iterator, List, Literal
-import src.utils as utils
+from src import ipfs
 from google.protobuf.message import Message
-from src.models.file import File
-from src.models.index import Index
+from src.file import File
+from src.index import Index
 import pandas as pd
 
 
@@ -71,7 +71,7 @@ class Store(File):
         path = index.get_filename()
 
         result = []
-        for filename in utils.list_files(path):
+        for filename in ipfs.list_files(path):
             has_prefix = index.prefix is not None
 
             next_index = Index.from_filename(
@@ -84,7 +84,7 @@ class Store(File):
                 continue
             
             # Check for subdirectories
-            if [filename] == utils.list_files(f"{path}/{filename}"):
+            if [filename] == ipfs.list_files(f"{path}/{filename}"):
                 # Base case, no subdirectories found
                 result.append(Store(index = next_index))
 

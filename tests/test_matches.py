@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.models.index import Index
+from src.index import Index
 
 
 @pytest.fixture
