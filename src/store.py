@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, Iterator, List, Literal
-from src import ipfs
+from src.ipfs import Ipfs
 from google.protobuf.message import Message
 from src.file import File
 from src.index import Index
@@ -18,6 +18,7 @@ class Store(File):
         self.index = index
         self.writer = writer
         self.reader = reader
+        super().__init__()
 
     @staticmethod
     def parse_subindex(subindex, result_dict):
@@ -67,7 +68,7 @@ class Store(File):
         return pd.DataFrame.from_dict(pandas_input)
 
     @staticmethod
-    def query(index: Index) -> List[Store]:
+    def query(index: Index, ipfs: Ipfs) -> List[Store]:
         path = index.get_filename()
 
         result = []
@@ -89,6 +90,6 @@ class Store(File):
                 result.append(Store(index = next_index))
 
             else:
-                result += Store.query(index = next_index)
+                result += Store.query(index = next_index, ipfs = ipfs)
 
         return result

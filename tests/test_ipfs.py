@@ -1,7 +1,9 @@
-from src import ipfs
+from src.ipfs import Ipfs, IPFS_HOME
 from unittest.mock import patch, Mock, MagicMock, call, mock_open
 from google.protobuf.message import Message
 import os
+
+ipfs = Ipfs()
 
 @patch('subprocess.run')
 def test_mkdir(mock_subprocess: MagicMock) -> None:
@@ -29,7 +31,7 @@ def test_read(mock_subprocess: MagicMock) -> None:
     file_contents = b"This is a test file."
 
     # Define the expected command and output of the subprocess
-    expected_command = ["ipfs", "files", "read", f"{ipfs.IPFS_HOME}/{filename}"]
+    expected_command = ["ipfs", "files", "read", f"{IPFS_HOME}/{filename}"]
     mock_subprocess.return_value.stdout = file_contents
 
     # Call the read() function with the mock Message object
@@ -58,7 +60,7 @@ def test_write(mock_subprocess: MagicMock) -> None:
 
     # Check if the subprocess is called with the expected arguments
     mock_subprocess.assert_has_calls([
-        call(["ipfs", "files", "write", "-t", f"{ipfs.IPFS_HOME}/{filename}", f"src/generated/tmp/{filename}"], capture_output=True),
+        call(["ipfs", "files", "write", "-t", f"{IPFS_HOME}/{filename}", f"src/generated/tmp/{filename}"], capture_output=True),
         call(["rm", f"src/generated/tmp/{filename}"])
     ])
 
@@ -75,8 +77,8 @@ def test_add(mock_subprocess: MagicMock) -> None:
 
     # Check the calls to subprocess.run
     mock_subprocess.assert_has_calls([
-        call(["ipfs", "files", "mkdir", "-p", f"{ipfs.IPFS_HOME}/data"]),
-        call(["ipfs", "add", "-r", f"src/generated/tmp/{filename}", "--to-files", f"{ipfs.IPFS_HOME}/{filename}"], capture_output=True),
+        call(["ipfs", "files", "mkdir", "-p", f"{IPFS_HOME}/data"]),
+        call(["ipfs", "add", "-r", f"src/generated/tmp/{filename}", "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True),
         call(["rm", f"src/generated/tmp/{filename}"])
     ])
 
@@ -89,7 +91,7 @@ def test_does_file_exist(mock_subprocess: MagicMock) -> None:
     assert ipfs.does_file_exist("existing_file.txt") == True
 
     # Check that the correct command is called with the correct argument
-    expected_cmd = ["ipfs", "files", "stat", f"{ipfs.IPFS_HOME}/existing_file.txt"]
+    expected_cmd = ["ipfs", "files", "stat", f"{IPFS_HOME}/existing_file.txt"]
     mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
 
 @patch('subprocess.run')
@@ -102,7 +104,7 @@ def test_does_file_not_exist(mock_subprocess: MagicMock) -> None:
     assert ipfs.does_file_exist("non_existing_file.txt") == False
 
     # Check that the correct command is called with the correct argument
-    expected_cmd = ["ipfs", "files", "stat", f"{ipfs.IPFS_HOME}/non_existing_file.txt"]
+    expected_cmd = ["ipfs", "files", "stat", f"{IPFS_HOME}/non_existing_file.txt"]
     mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
 
 @patch('subprocess.run')
