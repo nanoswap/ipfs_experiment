@@ -39,19 +39,21 @@ class Store(File):
         Returns:
             pd.DataFrame: The index and subindex data reformatted into a dataframe
         """
-        pandas_input = {'borrower': [], 'lender': [], 'loan': [], 'payment': [], 'amount_due': [], 'due_date': [], 'state': []}
-        for record in data:
-            record.read()  # read the file content from ipfs
-            index_data = {}
-            Index.parse_subindex(record.index.subindex, index_data)
-            print(index_data)
-            pandas_input['borrower'].append(index_data.get('borrower'))
-            pandas_input['lender'].append(index_data.get('lender'))
-            pandas_input['loan'].append(index_data.get('loan'))
-            pandas_input['payment'].append(index_data.get('payment'))
-            pandas_input['amount_due'].append(index_data.get('amount_due'))
-            pandas_input['due_date'].append(index_data.get('due_date'))
-            pandas_input['state'].append(index_data.get('state'))
+        pandas_input = {'borrower': [], 'lender': [], 'loan': [], 'payment': []}
+        for store in data:
+            metadata = store.index.get_metadata()
+            pandas_input['borrower'].append(metadata.get('borrower'))
+            pandas_input['lender'].append(metadata.get('lender'))
+            pandas_input['loan'].append(metadata.get('loan'))
+            pandas_input['payment'].append(metadata.get('payment'))
+
+
+            # pandas_input['borrower'].append(index_data.get('borrower'))
+            # pandas_input['lender'].append(index_data.get('lender'))
+            # pandas_input['loan'].append(index_data.get('loan'))
+            # pandas_input['payment'].append(index_data.get('payment'))
+            # pandas_input['type'].append(index_data.get('type'))
+            # pandas_input['content'].append(index_data.get('content'))
             
         # load the data into a pandas dataframe
         return pd.DataFrame.from_dict(pandas_input)

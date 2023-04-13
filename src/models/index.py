@@ -56,6 +56,20 @@ class Index():
 
     def is_partial(self) -> bool:
         return self.size != len(self.index.keys())
+    
+    def get_metadata(self) -> Dict[str, UUID]:
+        """ Parse the subindex/filename data """
+        filename = self.get_filename()  # recursively get subindex data
+        records = filename.split("/")
+        if self.prefix:
+            records.pop(0)
+        
+        result = {}
+        for index_level in records:
+            for index in index_level.split("."):
+                result[index.split("_")[0]] = index.split("_")[1]
+        
+        return result
 
     def get_filename(self) -> str:
         """ Convert this object to a filename """
