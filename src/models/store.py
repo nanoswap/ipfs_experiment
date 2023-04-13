@@ -5,6 +5,7 @@ import src.utils as utils
 from google.protobuf.message import Message
 from src.models.file import File
 from src.models.index import Index
+import pandas as pd
 
 
 @dataclass
@@ -17,31 +18,44 @@ class Store(File):
         self.index = index
         self.writer = writer
         self.reader = reader
-    
-    # @staticmethod
-    # def to_dataframe(data: List[Store]) -> pd.DataFrame:
-    #     """
-    #     Convert a list of Store objects to a pandas dataframe.
-    #     This function will read the data for each file, and include it in the result.
 
-    #     Args:
-    #         data (List[Store]): The list of Store objects
+    @staticmethod
+    def parse_subindex(subindex, result_dict):
+        for key, value in subindex.items():
+            if isinstance(value, dict):
+                Index.parse_subindex(value, result_dict)
+            else:
+                result_dict[key].append(value)
 
-    #     Returns:
-    #         pd.DataFrame: The dataframe with the loan payment data from ipfs
-    #     """
-    #     pandas_input = {'borrower': [], 'lender': [], 'loan': [], 'payment': [], 'amount_due': [], 'due_date': [], 'state': []}
-    #     for record in data:
-    #         record.read()  # read the file content from ipfs
-    #         pandas_input['borrower'].append(payment.borrower_id)
-    #         pandas_input['lender'].append(payment.lender_id)
-    #         pandas_input['loan'].append(payment.loan_id)
-    #         pandas_input['payment'].append(payment.payment_id)
-    #         pandas_input['amount_due'].append(payment.reader.amount_due)
-    #         pandas_input['due_date'].append(datetime.fromtimestamp(payment.reader.due_date.ToSeconds()))
-        
-    #     # load the data into a pandas dataframe
-    #     return pd.DataFrame.from_dict(pandas_input)
+    @staticmethod
+    def to_dataframe(data: List[Store]) -> pd.DataFrame:
+        """
+        Convert a list of Store objects to a pandas dataframe.
+        This function will read the data for each file, and include it in the result.
+
+        Args:
+            data (List[Store]): The list of Store objects with Indexes
+
+        Returns:
+            pd.DataFrame: The index and subindex data reformatted into a dataframe
+        """
+        pandas_input = {'borrower': [], 'lender': [], 'loan': [], 'payment': [], 'amount_due': [], 'due_date': [], 'state': []}
+        for record in data:
+            record.read()  # read the file content from ipfs
+            index_data = {}
+            Index.parse_subindex(record.index.subindex, index_data)
+            print(index_data)
+            pandas_input['borrower'].append(index_data.get('borrower'))
+            pandas_input['lender'].append(index_data.get('lender'))
+            pandas_input['loan'].append(index_data.get('loan'))
+            pandas_input['payment'].append(index_data.get('payment'))
+            pandas_input['amount_due'].append(index_data.get('amount_due'))
+            pandas_input['due_date'].append(index_data.get('due_date'))
+            pandas_input['state'].append(index_data.get('state'))
+            
+        # load the data into a pandas dataframe
+        return pd.DataFrame.from_dict(pandas_input)
+
 
     @staticmethod
     def query(index: Index) -> List[Store]:
