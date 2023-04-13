@@ -3,7 +3,7 @@ import datetime
 import uuid
 from src.models.index import Index
 from src.models.store import Store
-from src.sample_pb2 import Example, Type
+from protobuf.sample_pb2 import Example, Type
 
 Faker.seed(0)
 fake = Faker()

@@ -6,4 +6,7 @@ To only run tests: `pytest`
 To run all checks: `nox`
 
 ## Regenerate pb2.py files
-`protoc --python_out=. --proto_path=protobuf protobuf/sample.proto`
+```
+cd protobuf;
+protoc --python_out=../proto --proto_path=protobuf protobuf/sample.proto
+```
