@@ -1,6 +1,0 @@
-syntax = "proto3";
-package nanoswap.enum;
-
-enum Issuer {
-    USA_SSN = 0;
-}

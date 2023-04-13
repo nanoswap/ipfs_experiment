@@ -14,26 +14,23 @@ def mkdir(directory_name: str) -> None:
     """
     subprocess.run(["ipfs", "files", "mkdir", directory_name])
 
-def read(filename: str, reader: Message) -> Message:
+def read(filename: str) -> bytes:
     """
     Read a file from ipfs
 
     Args:
         filename (str): The file to read
-        reader (Message): The protobuf schema to deserialize the file contents
 
     Returns:
-        Message: A protobuf object containing the file contents
+        (bytes): The file contents
     """
     # download the data
     result = subprocess.run(["ipfs", "files", "read", f"{IPFS_HOME}/{filename}"], capture_output=True)
 
-    # parse the data
-    data = result.stdout
-    reader.ParseFromString(data)
-    return reader
+    # return the data
+    return result.stdout
 
-def write(filename: str, data: Message) -> None:
+def write(filename: str, data: bytes) -> None:
     """
     Update an existing file
 
@@ -41,28 +38,29 @@ def write(filename: str, data: Message) -> None:
         filename (str): The file to update
         data (Message): The data to overwrite the file with
     """
-    # write data to a local file
+    # Write data to a local file
     path = f"src/generated/tmp/{filename}"
-    # create the subdirectories locally if they don't already exist
+
+    # Create the subdirectories locally if they don't already exist
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
-        # serialize the data before writing
-        f.write(data.SerializeToString())
+        # Serialize the data before writing
+        f.write(data)
 
-    # upload that file
+    # Upload that file
     subprocess.run(["ipfs", "files", "write", "-t", f"{IPFS_HOME}/{filename}", path], capture_output=True)
 
-    # remove the temporary file
+    # Remove the temporary file
     subprocess.run(["rm", path])
 
-def add(filename: str, data: Message) -> None:
+def add(filename: str, data: bytes) -> None:
     """
     Create a new file in ipfs.
     This does not work for updating existing files.
 
     Args:
         filename (str): The filename for the uploaded data
-        data (Message): The protobuf object that will be written to the new file
+        data (bytes): The data that will be written to the new file
     """
     # write data to a local file
     path = f"src/generated/tmp/{filename}"
@@ -70,7 +68,7 @@ def add(filename: str, data: Message) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "wb") as f:
         # serialize the data before writing
-        f.write(data.SerializeToString())
+        f.write(data)
 
     # create the directory in ipfs
     directory = "/".join(filename.split("/")[:-1])
@@ -92,9 +90,8 @@ def does_file_exist(filename: str) -> bool:
     Returns:
         bool: True if the file exists, false otherwise
     """
-    filename = f"/{filename}"
     process = subprocess.run(["ipfs", "files", "stat", f"{IPFS_HOME}/{filename}"], capture_output=True)
-    does_not_exist = ( process.returncode == 1 and "file does not exist" in str(process.stderr) )
+    does_not_exist = ( process.returncode == 1 and "file does not exist" in process.stderr.decode() )
     return not does_not_exist
 
 def list_files(prefix: str) -> List[str]:
@@ -109,7 +106,7 @@ def list_files(prefix: str) -> List[str]:
     """
     process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
     files = process.stdout.decode().split("\n")
-    return files
+    return [file for file in files if file]
 
 def delete(filename: str) -> None:
     """
