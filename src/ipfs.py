@@ -3,14 +3,26 @@ import subprocess
 from typing import List
 from google.protobuf.message import Message
 import os
+import requests
+import json
 
 IPFS_HOME =  "/data"
 
 @dataclass
 class Ipfs():
 
-    @staticmethod
-    def mkdir(directory_name: str) -> None:
+    def __init__(self, host: str = "http://localhost", port: int = 5001, version: str = "v0"):
+        self.host = host
+        self.port = port
+        self.version = version
+
+    def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None):
+        url = f"{self.host}:{self.port}/api/{self.version}/{endpoint}"
+        response = requests.request(method, url, params=params, data=json.dumps(data))
+        response.raise_for_status()
+        return response.json()
+
+    def mkdir(self, directory_name: str) -> None:
         """
         Create a directory in ipfs
 
@@ -19,8 +31,7 @@ class Ipfs():
         """
         subprocess.run(["ipfs", "files", "mkdir", directory_name])
 
-    @staticmethod
-    def read(filename: str) -> bytes:
+    def read(self, filename: str) -> bytes:
         """
         Read a file from ipfs
 
@@ -36,8 +47,7 @@ class Ipfs():
         # return the data
         return result.stdout
 
-    @staticmethod
-    def write(filename: str, data: bytes) -> None:
+    def write(self, filename: str, data: bytes) -> None:
         """
         Update an existing file
 
@@ -60,8 +70,7 @@ class Ipfs():
         # Remove the temporary file
         os.remove(path)
 
-    @staticmethod
-    def add(filename: str, data: bytes) -> None:
+    def add(self, filename: str, data: bytes) -> None:
         """
         Create a new file in ipfs.
         This does not work for updating existing files.
@@ -88,8 +97,7 @@ class Ipfs():
         # remove the temporary file
         os.remove(path)
 
-    @staticmethod
-    def does_file_exist(filename: str) -> bool:
+    def does_file_exist(self, filename: str) -> bool:
         """
         Check if a file exists in ipfs
 
@@ -103,8 +111,7 @@ class Ipfs():
         does_not_exist = ( process.returncode == 1 and "file does not exist" in process.stderr.decode() )
         return not does_not_exist
 
-    @staticmethod
-    def list_files(prefix: str) -> List[str]:
+    def list_files(self, prefix: str) -> List[str]:
         """
         List the ipfs files in a directory
 
@@ -118,8 +125,7 @@ class Ipfs():
         files = process.stdout.decode().split("\n")
         return [file for file in files if file]
 
-    @staticmethod
-    def delete(filename: str) -> None:
+    def delete(self, filename: str) -> None:
         """
         Delete a file from ipfs
 
