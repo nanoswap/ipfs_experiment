@@ -28,14 +28,18 @@ class Index():
         return result
     
     def matches(self, other_index: Index) -> bool:
-        """ Check if this index has a compatible index with another index"""
+        """
+            Check if this index has a compatible index with another index.
+            Returns false if any self keys are not in the other index
+                or if any values in self are not equal to the corresponding value in the other index
+        """
         for key in self.index:
             if key not in other_index.index:
                 return False
 
             if str(self.index[key]) != str(other_index.index[key]):
                 return False
-        
+
         return True
 
     def is_partial(self) -> bool:
