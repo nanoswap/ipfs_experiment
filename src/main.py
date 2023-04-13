@@ -1,5 +1,9 @@
 from faker import Faker
 import datetime
+import uuid
+from models.index import Index
+from models.store import Store
+from protobuf.sample_pb2 import Example, Type
 
 Faker.seed(0)
 fake = Faker()
