@@ -44,6 +44,7 @@ def test_read(mock_subprocess: MagicMock) -> None:
     assert result == file_contents
 
 @patch('subprocess.run')
+@patch('os.remove', Mock())
 @patch('builtins.open', mock_open())
 def test_write(mock_subprocess: MagicMock) -> None:
     """ Test the `utils.write` function """
@@ -61,7 +62,6 @@ def test_write(mock_subprocess: MagicMock) -> None:
     # Check if the subprocess is called with the expected arguments
     mock_subprocess.assert_has_calls([
         call(["ipfs", "files", "write", "-t", f"{IPFS_HOME}/{filename}", f"src/generated/tmp/{filename}"], capture_output=True),
-        call(["rm", f"src/generated/tmp/{filename}"])
     ])
 
 @patch('subprocess.run')
@@ -79,7 +79,6 @@ def test_add(mock_subprocess: MagicMock) -> None:
     mock_subprocess.assert_has_calls([
         call(["ipfs", "files", "mkdir", "-p", f"{IPFS_HOME}/data"]),
         call(["ipfs", "add", "-r", f"src/generated/tmp/{filename}", "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True),
-        call(["rm", f"src/generated/tmp/{filename}"])
     ])
 
 @patch('subprocess.run')
