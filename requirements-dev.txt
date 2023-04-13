@@ -1,6 +1,0 @@
-nox
-hypothesis
-mock
-pytest
-flake8
-Faker

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package nanoswap.message;
+
+import "google/protobuf/timestamp.proto";
+
+// ipfs filename:
+//   borrower_<id>.lender_<id>.loan_<id>.payment_<payment_id>
+message LoanPayment {
+    int64 amount_due = 1;
+    google.protobuf.Timestamp due_date = 2;
+    optional string transaction = 3; // for completed payments, this is the transaction id of the payment
+}
