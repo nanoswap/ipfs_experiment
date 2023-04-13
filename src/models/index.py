@@ -19,14 +19,26 @@ class Index():
         self.subindex = subindex
         self.size = size if size else len(index.keys())
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = "\n----- Index object -----\n"
         result += f"  filename: {self.get_filename()}\n"
         result += f"  is_partial: {self.is_partial()}\n"
+        result += f"  size: {self.size}\n"
         result += f"  has_subindex: {self.subindex is not None}\n"
         result += f"  index: {self.index}\n"
         return result
     
+    def __eq__(self, other_index: Index) -> bool:
+        print(str(self))
+        print(str(other_index))
+        result = \
+            self.prefix == other_index.prefix and \
+            self.size == other_index.size and \
+            self.subindex == other_index.subindex and \
+            self.index == other_index.index
+        print(result)
+        return result
+
     def matches(self, other_index: Index) -> bool:
         """
             Check if this index has a compatible index with another index.
