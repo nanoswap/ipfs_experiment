@@ -28,31 +28,40 @@ class Store(File):
                 result_dict[key].append(value)
 
     @staticmethod
-    def to_dataframe(data: List[Store], parsed_columns: List[str], parser: function) -> pd.DataFrame:
+    def to_dataframe(data: List[Store], protobuf_parsers: Dict[str, function]) -> pd.DataFrame:
         """
         Convert a list of Store objects to a pandas dataframe.
         This function will read the data for each file, and include it in the result.
+        The data for each Store must be read into memory beforehand; using `store.read()`
 
         Args:
             data (List[Store]): The list of Store objects with Indexes
+            protobuf_parsers: (Dict[str, function]): key, value pair of
+                key (str) --> pandas column name
+                value (function) --> how to extract the value from the store
+
+                The function should accept a Store object and return Any
 
         Returns:
             pd.DataFrame: The index and subindex data reformatted into a dataframe
         """
-        pandas_input = {'borrower': [], 'lender': [], 'loan': [], 'payment': [], 'type': [], 'content': []}
+        pandas_input = {}
         for store in data:
 
             # add metadata
             metadata = store.index.get_metadata()
-            pandas_input['borrower'].append(metadata.get('borrower'))
-            pandas_input['lender'].append(metadata.get('lender'))
-            pandas_input['loan'].append(metadata.get('loan'))
-            pandas_input['payment'].append(metadata.get('payment'))
+            for key in metadata:
+                if key not in pandas_input:
+                    pandas_input[key] = []
+                
+                pandas_input[key].append(metadata[key])
 
-            # read data, parse it, and add top level data
-            # store.read()
-            pandas_input['type'].append(store.reader.type)
-            pandas_input['content'].append(store.reader.content)
+            # add top level data from the reader
+            for key in protobuf_parsers:
+                if key not in pandas_input:
+                    pandas_input[key] = []
+
+                pandas_input[key].append(protobuf_parsers[key](store))
 
         # load the data into a pandas dataframe
         return pd.DataFrame.from_dict(pandas_input)
