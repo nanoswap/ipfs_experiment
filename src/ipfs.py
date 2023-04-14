@@ -201,7 +201,6 @@ class Ipfs():
         Returns:
             List[str]: The list of filenames found at that location
         """
-
         try:
             return json.loads(self._make_request(
                 endpoint = "files/ls",

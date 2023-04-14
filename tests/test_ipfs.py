@@ -1,111 +1,113 @@
-from src.ipfs import Ipfs, IPFS_HOME
-from unittest.mock import patch, Mock, MagicMock, call, mock_open
-from google.protobuf.message import Message
-import os
+import unittest
+from unittest.mock import patch, MagicMock
+from src.ipfs import Ipfs
+import requests
 
-ipfs = Ipfs()
+class TestIpfs(unittest.TestCase):
 
-def test_mkdir() -> None:
-    """ Test the `utils.mkdir` function """
+    @patch('src.ipfs.requests.post')
+    def test_mkdir(self, mock_post):
+        ipfs = Ipfs()
+        mock_post.return_value.raise_for_status.return_value = None
+        ipfs.mkdir("test_dir")
+        mock_post.assert_called_with(
+            "http://127.0.0.1:5001/api/v0/files/mkdir",
+            params={"arg": "/data/test_dir"},
+            files=None
+        )
 
-    # Define the expected directory name
-    directory_name = "test_directory"
+    @patch('src.ipfs.requests.post')
+    def test_read(self, mock_post):
+        ipfs = Ipfs()
+        mock_post.return_value.content = b"test data"
+        result = ipfs.read("test_file")
+        mock_post.assert_called_with(
+            "http://127.0.0.1:5001/api/v0/files/read",
+            params={"arg": "/data/test_file"},
+            files=None
+        )
+        self.assertEqual(result, b"test data")
 
-    # Call the mkdir() function with the expected directory name
-    ipfs.mkdir(directory_name)
+    @patch('src.ipfs.requests.post')
+    def test_add(self, mock_post):
+        ipfs = Ipfs()
+        mock_post.return_value.raise_for_status.return_value = None
+        ipfs.add("test_file", b"test data")
+        mock_post.assert_called_with(
+            "http://127.0.0.1:5001/api/v0/add",
+            params={
+                "to-files": "/data/test_file",
+                "raw-leaves": True
+            },
+            files={
+                "test_file": b"test data"
+            }
+        )
 
-    # Assert that the subprocess was called with the expected command
-    assert ipfs.does_file_exist(directory_name)
+    @patch('src.ipfs.requests.post')
+    def test_does_file_exist_true(self, mock_post):
+        ipfs = Ipfs()
+        mock_post.return_value.content = b"{}"
+        result = ipfs.does_file_exist("test_file")
+        mock_post.assert_called_with(
+            "http://127.0.0.1:5001/api/v0/files/stat",
+            params={"arg": "/data/test_file"},
+            files=None
+        )
+        self.assertTrue(result)
 
-    # Cleanup: delete the directory
-    ipfs.delete(directory_name)
+    @patch('src.ipfs.requests.post')
+    def test_does_file_exist_false(self, mock_post):
+        ipfs = Ipfs()
+        mock_post.side_effect = requests.exceptions.HTTPError("file does not exist", response=MagicMock(status_code=404, _content=b'file does not exist'))
+        result = ipfs.does_file_exist("test_file")
+        mock_post.assert_called_with(
+            "http://127.0.0.1:5001/api/v0/files/stat",
+            params={"arg": "/data/test_file"},
+            files=None
+        )
+        self.assertFalse(result)
 
-# @patch('subprocess.run')
-# def test_read(mock_subprocess: MagicMock) -> None:
-#     """ Test the `utils.read` function """
+    @patch('src.ipfs.requests.post')
+    def test_stat(self, mock_post):
+        ipfs = Ipfs()
+        mock_post.return_value.content = b'{"Type": 2, "CumulativeSize": 0, "Blocks": 0}'
+        result = ipfs.stat("test_file")
+        mock_post.assert_called_with(
+            "http://127.0.0.1:5001/api/v0/files/stat",
+            params={"arg": "/data/test_file"},
+            files=None
+        )
+        self.assertEqual(result, {"Type": 2, "CumulativeSize": 0, "Blocks": 0})
 
-#     # Define the expected filename and file contents
-#     filename = "test.txt"
-#     file_contents = b"This is a test file."
+    # @patch('src.ipfs.requests.post')
+    # def test_list_files(self, mock_post):
+    #     ipfs = Ipfs()
+    #     # Mock the response from _make_request
+    #     mock_post.return_value.content = b'{"Objects": [{"Links": [{"Name": "file1.txt"}]}]}'
 
-#     # Define the expected command and output of the subprocess
-#     expected_command = ["ipfs", "files", "read", f"{IPFS_HOME}/{filename}"]
-#     mock_subprocess.return_value.stdout = file_contents
+    #     # Call the function
+    #     files = ipfs.list_files("path/to/dir")
 
-#     # Call the read() function with the mock Message object
-#     result = ipfs.read(filename)
+    #     # Assert that the correct params were passed to _make_request
+    #     mock_post.assert_called_with(
+    #         "http://127.0.0.1:5001/api/v0/files/ls",
+    #         params={"arg": "/data/path/to/dir"},
+    #         files=None
+    #     )
 
-#     # Assert that the subprocess was called with the expected command
-#     mock_subprocess.assert_called_once_with(expected_command, capture_output=True)
+    #     # Assert that the response is what we expect
+    #     self.assertEqual(files, ["file1.txt"])
 
-#     # Assert that the read() function returned the mock Message object
-#     assert result == file_contents
+    @patch('src.ipfs.requests.post')
+    def test_delete(self, mock_post):
+        ipfs = Ipfs()
+        # Call the function
+        ipfs.delete("path/to/file.txt")
 
-# @patch('subprocess.run')
-# def test_does_file_exist(mock_subprocess: MagicMock) -> None:
-#     """ Test the `utils.does_file_exist` function """
-
-#     # Case where file exists
-#     mock_subprocess.return_value.stdout.decode.return_value = "NumLinks: 1\nBlockSize: 12\nType: file\n"
-#     assert ipfs.does_file_exist("existing_file.txt") == True
-
-#     # Check that the correct command is called with the correct argument
-#     expected_cmd = ["ipfs", "files", "stat", f"{IPFS_HOME}/existing_file.txt"]
-#     mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
-
-# @patch('subprocess.run')
-# def test_does_file_not_exist(mock_subprocess: MagicMock) -> None:
-#     """ Test the `utils.does_file_exist` function """
-
-#     # Case where file does not exist
-#     mock_subprocess.return_value.returncode = 1
-#     mock_subprocess.return_value.stderr.decode.return_value = "file does not exist"
-#     assert ipfs.does_file_exist("non_existing_file.txt") == False
-
-#     # Check that the correct command is called with the correct argument
-#     expected_cmd = ["ipfs", "files", "stat", f"{IPFS_HOME}/non_existing_file.txt"]
-#     mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
-
-# @patch('subprocess.run')
-# def test_list_files(mock_subprocess: MagicMock) -> None:
-#     """ Test the `utils.list_files` function """
-
-#     # Set up the mock subprocess
-#     process_mock = MagicMock()
-#     process_mock.returncode = 0
-#     process_mock.stdout.decode.return_value = "file1.txt\nfile2.txt\nfile3.txt\n"
-#     mock_subprocess.return_value = process_mock
-
-#     # Test case where files exist
-#     result = ipfs.list_files("my_directory")
-#     assert result == ["file1.txt", "file2.txt", "file3.txt"]
-
-#     # Test case where no files exist
-#     process_mock.stdout.decode.return_value = ""
-#     result = ipfs.list_files("empty_directory")
-#     assert result == []
-
-# @patch('subprocess.run')
-# def test_delete(mock_subprocess: MagicMock) -> None:
-#     """ Test the `utils.delete` function """
-
-#     filename = "test_delete_existing_file.txt"
-#     data = b"some contents"
-
-#     mock_subprocess.return_value.stdout.decode.return_value = data
-#     mock_subprocess.return_value.stderr.decode.return_value = ""
-
-#     # Create a file
-#     ipfs.add(filename, data)
-
-#     # Check that the file exists
-#     mock_subprocess.return_value.returncode = 0
-#     assert ipfs.does_file_exist(filename)
-
-#     # Delete the file
-#     ipfs.delete(filename)
-
-#     # Check that the file no longer exists
-#     mock_subprocess.return_value.returncode = 1
-#     mock_subprocess.return_value.stderr.decode.return_value = "file does not exist"
-#     assert not ipfs.does_file_exist(filename)
+        # Assert that the correct params were passed to _make_request
+        mock_post.assert_called_with(
+            "http://127.0.0.1:5001/api/v0/files/rm",
+            params={"arg": "/data/path/to/file.txt", "recursive": True},
+            files=None
+        )
