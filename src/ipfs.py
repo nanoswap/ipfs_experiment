@@ -5,6 +5,7 @@ from google.protobuf.message import Message
 import os
 import requests
 import json
+from multicodec import add_prefix, remove_prefix, get_codec
 
 IPFS_HOME =  "/data"
 
@@ -16,17 +17,33 @@ class Ipfs():
         self.port = port
         self.version = version
 
-    def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None, raise_for_status: bool = True):
+    def _make_request(self, method: str, endpoint: str, params: dict = None, files: dict = None, raise_for_status: bool = True):
         url = f"{self.host}:{self.port}/api/{self.version}/{endpoint}"
-        response = requests.request(method, url, params = params, files = data)
+        response = requests.request(method, url, params = params, files = files)
         if raise_for_status:
             response.raise_for_status()
         return response.content
 
-    def _get_dag(self, filename):
-        # need this to pass into files/write
-        # https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-dag-get
-        pass
+    def _dag_put(self, data: bytes) -> str:
+        try:
+            response = self._make_request(
+                method = "POST",
+                endpoint = "dag/put",
+                params = {
+                    "store-codec": "raw",
+                    "input-codec": "raw"
+                },
+                files = {
+                    "object data": add_prefix('raw', data)
+                },
+                raise_for_status = False
+            )
+            print(response)
+            result = json.loads(response)
+            return result["Cid"]["/"]
+        except requests.exceptions.HTTPError as e:
+            raise RuntimeError(e.response._content.decode()) from e
+
 
     def mkdir(self, directory_name: str, with_home = True) -> None:
         """
@@ -74,15 +91,17 @@ class Ipfs():
             data (Message): The data to overwrite the file with
         """
         try:
+            cid = self._dag_put(data)
             self._make_request(
                 method = "POST",
                 endpoint = "files/write",
                 params = {
                     "arg": f"{IPFS_HOME}/{filename}",
+                    "truncate": True,
                     "raw-leaves": True
                 },
-                data = {
-                    "file": data
+                files = {
+                    'data': data
                 }
             )
         except requests.exceptions.HTTPError as e:
@@ -106,7 +125,7 @@ class Ipfs():
                     "to-files": f"{IPFS_HOME}/{filename}",
                     "raw-leaves": True
                 },
-                data = {
+                files = {
                     filename: data
                 }
             )

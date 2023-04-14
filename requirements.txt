@@ -1,3 +1,4 @@
 requests
 protobuf
 setuptools
+py-multicodec
