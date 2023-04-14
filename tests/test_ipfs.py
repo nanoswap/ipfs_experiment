@@ -41,16 +41,6 @@ def test_mkdir() -> None:
 #     # Assert that the read() function returned the mock Message object
 #     assert result == file_contents
 
-def test_write() -> None:
-    """ Test the `utils.write` function """
-
-    filename = "test_write.txt"
-    data = b"some contents"
-
-    # Call the function to update the file
-    ipfs.add(filename, data)
-    ipfs.write(filename, data)
-
 # @patch('subprocess.run')
 # def test_does_file_exist(mock_subprocess: MagicMock) -> None:
 #     """ Test the `utils.does_file_exist` function """
@@ -76,24 +66,24 @@ def test_write() -> None:
 #     expected_cmd = ["ipfs", "files", "stat", f"{IPFS_HOME}/non_existing_file.txt"]
 #     mock_subprocess.assert_called_with(expected_cmd, capture_output=True)
 
-@patch('subprocess.run')
-def test_list_files(mock_subprocess: MagicMock) -> None:
-    """ Test the `utils.list_files` function """
+# @patch('subprocess.run')
+# def test_list_files(mock_subprocess: MagicMock) -> None:
+#     """ Test the `utils.list_files` function """
 
-    # Set up the mock subprocess
-    process_mock = MagicMock()
-    process_mock.returncode = 0
-    process_mock.stdout.decode.return_value = "file1.txt\nfile2.txt\nfile3.txt\n"
-    mock_subprocess.return_value = process_mock
+#     # Set up the mock subprocess
+#     process_mock = MagicMock()
+#     process_mock.returncode = 0
+#     process_mock.stdout.decode.return_value = "file1.txt\nfile2.txt\nfile3.txt\n"
+#     mock_subprocess.return_value = process_mock
 
-    # Test case where files exist
-    result = ipfs.list_files("my_directory")
-    assert result == ["file1.txt", "file2.txt", "file3.txt"]
+#     # Test case where files exist
+#     result = ipfs.list_files("my_directory")
+#     assert result == ["file1.txt", "file2.txt", "file3.txt"]
 
-    # Test case where no files exist
-    process_mock.stdout.decode.return_value = ""
-    result = ipfs.list_files("empty_directory")
-    assert result == []
+#     # Test case where no files exist
+#     process_mock.stdout.decode.return_value = ""
+#     result = ipfs.list_files("empty_directory")
+#     assert result == []
 
 # @patch('subprocess.run')
 # def test_delete(mock_subprocess: MagicMock) -> None:

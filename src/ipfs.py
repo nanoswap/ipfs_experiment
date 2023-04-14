@@ -6,6 +6,7 @@ import os
 import requests
 import json
 from multicodec import add_prefix, remove_prefix, get_codec
+from protobuf.sample_pb2 import Example, Type
 
 IPFS_HOME =  "/data"
 
@@ -17,9 +18,9 @@ class Ipfs():
         self.port = port
         self.version = version
 
-    def _make_request(self, method: str, endpoint: str, params: dict = None, files: dict = None, raise_for_status: bool = True):
+    def _make_request(self, endpoint: str, params: dict = None, files: dict = None, raise_for_status: bool = True):
         url = f"{self.host}:{self.port}/api/{self.version}/{endpoint}"
-        response = requests.request(method, url, params = params, files = files)
+        response = requests.post(url, params = params, files = files)
         if raise_for_status:
             response.raise_for_status()
         return response.content
@@ -27,7 +28,6 @@ class Ipfs():
     def _dag_put(self, data: bytes) -> str:
         try:
             response = self._make_request(
-                method = "POST",
                 endpoint = "dag/put",
                 params = {
                     "store-codec": "raw",
@@ -39,11 +39,27 @@ class Ipfs():
                 raise_for_status = False
             )
             print(response)
-            result = json.loads(response)
+            result = json.loads(response.decode())
             return result["Cid"]["/"]
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
+            print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
+    def _dag_get(self, filename: str) -> str:
+        try:
+            response = self._make_request(
+                endpoint = "dag/get",
+                params = {
+                    "arg": filename,
+                    # "output-codec": "raw"
+                },
+                raise_for_status = False
+            )
+            print(response)
+            return json.loads(response.decode())
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
 
     def mkdir(self, directory_name: str, with_home = True) -> None:
         """
@@ -55,12 +71,12 @@ class Ipfs():
         path = f"{IPFS_HOME}/{directory_name}" if with_home else f"/{directory_name}"
         try:
             self._make_request(
-                method = "POST",
                 endpoint = "files/mkdir",
                 params = {"arg": path},
                 raise_for_status = False
             )
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
+            print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
     def read(self, filename: str) -> bytes:
@@ -75,25 +91,25 @@ class Ipfs():
         """
         try:
             return self._make_request(
-                method = "POST",
                 endpoint = "files/read",
                 params = {"arg": f"{IPFS_HOME}/{filename}"},
             )
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
+            print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
     def write(self, filename: str, data: bytes) -> None:
-        """
-        Update an existing file
+        
+        raise NotImplementedError("For now, just use `add` and `delete`")
 
-        Args:
-            filename (str): The file to update
-            data (Message): The data to overwrite the file with
-        """
         try:
-            cid = self._dag_put(data)
+            stat = self.stat(filename)
+            dag = self._dag_get(stat["Hash"])
+            # print(dag)
+            # print(dag["/"]["bytes"].encode)
+            example = Example()
+            example.ParseFromString(dag)
             self._make_request(
-                method = "POST",
                 endpoint = "files/write",
                 params = {
                     "arg": f"{IPFS_HOME}/{filename}",
@@ -101,12 +117,11 @@ class Ipfs():
                     "raw-leaves": True
                 },
                 files = {
-                    'data': data
+                    'file': example.SerializeToString()
                 }
             )
         except requests.exceptions.HTTPError as e:
             raise RuntimeError(e.response._content.decode()) from e
-
 
     def add(self, filename: str, data: bytes) -> None:
         """
@@ -119,7 +134,6 @@ class Ipfs():
         """
         try:
             self._make_request(
-                method = "POST",
                 endpoint = "add",
                 params = {
                     "to-files": f"{IPFS_HOME}/{filename}",
@@ -129,7 +143,8 @@ class Ipfs():
                     filename: data
                 }
             )
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
+            print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
     def does_file_exist(self, filename: str) -> bool:
@@ -144,16 +159,36 @@ class Ipfs():
         """
         try:
             response = self._make_request(
-                method = "POST",
                 endpoint = "files/stat",
                 params = {"arg": f"{IPFS_HOME}/{filename}"},
                 raise_for_status = False
             )
             return 'file does not exist' not in response.decode()
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
+            print(e)
             if 'file does not exist' in e.response._content.decode():
                 return False
 
+            raise RuntimeError(e.response._content.decode()) from e
+
+    def stat(self, filename) -> List[str]:
+        """
+        List the ipfs files in a directory
+
+        Args:
+            prefix (str): The path to search on ipfs
+
+        Returns:
+            List[str]: The list of filenames found at that location
+        """
+        try:
+            return json.loads(self._make_request(
+                endpoint = "files/stat",
+                params = {"arg": f"{IPFS_HOME}/{filename}"},
+                raise_for_status = False
+            ))
+        except Exception as e:
+            print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
     def list_files(self, prefix: str = "") -> List[str]:
@@ -168,15 +203,13 @@ class Ipfs():
         """
 
         try:
-            # TODO: parse results
-            #   b'{"Entries":[{"Name":"Tjupyter_test","Type":0,"Size":0,"Hash":""},{"Name":"identity","Type":0,"Size":0,"Hash":""},{"Name":"jupyter_test","Type":0,"Size":0,"Hash":""},{"Name":"loan","Type":0,"Size":0,"Hash":""},{"Name":"test_directory_2","Type":0,"Size":0,"Hash":""},{"Name":"var","Type":0,"Size":0,"Hash":""}]}\n'
-            return self._make_request(
-                method = "POST",
+            return json.loads(self._make_request(
                 endpoint = "files/ls",
                 params = {"arg": f"{IPFS_HOME}/{prefix}"},
                 raise_for_status = False
-            )
-        except requests.exceptions.HTTPError as e:
+            ))
+        except Exception as e:
+            print(e)
             raise RuntimeError(e.response._content.decode()) from e
         
 
@@ -190,7 +223,6 @@ class Ipfs():
 
         try:
             self._make_request(
-                method = "POST",
                 endpoint = "files/rm",
                 params = {
                     "arg": f"{IPFS_HOME}/{filename}",
@@ -198,5 +230,6 @@ class Ipfs():
                 },
                 raise_for_status = False
             )
-        except requests.exceptions.HTTPError as e:
+        except Exception as e:
+            print(e)
             raise RuntimeError(e.response._content.decode()) from e

@@ -2,3 +2,4 @@ requests
 protobuf
 setuptools
 py-multicodec
+pandas
