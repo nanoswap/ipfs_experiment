@@ -18,7 +18,7 @@ class Ipfs():
 
     def _make_request(self, method: str, endpoint: str, params: dict = None, data: dict = None, raise_for_status: bool = True):
         url = f"{self.host}:{self.port}/api/{self.version}/{endpoint}"
-        response = requests.request(method, url, params=params, data=json.dumps(data))
+        response = requests.request(method, url, params = params, files = data)
         if raise_for_status:
             response.raise_for_status()
         return response.content
@@ -39,7 +39,7 @@ class Ipfs():
                 raise_for_status = False
             )
         except requests.exceptions.HTTPError as e:
-            raise RuntimeError(e.response._content.decode())
+            raise RuntimeError(e.response._content.decode()) from e
 
     def read(self, filename: str) -> bytes:
         """
@@ -51,11 +51,14 @@ class Ipfs():
         Returns:
             (bytes): The file contents
         """
-        # download the data
-        result = subprocess.run(["ipfs", "files", "read", f"{IPFS_HOME}/{filename}"], capture_output=True)
-
-        # return the data
-        return result.stdout
+        try:
+            return self._make_request(
+                method = "POST",
+                endpoint = "files/read",
+                params = {"arg": f"{IPFS_HOME}/{filename}"},
+            )
+        except requests.exceptions.HTTPError as e:
+            raise RuntimeError(e.response._content.decode()) from e
 
     def write(self, filename: str, data: bytes) -> None:
         """
@@ -65,20 +68,21 @@ class Ipfs():
             filename (str): The file to update
             data (Message): The data to overwrite the file with
         """
-        # Write data to a local file
-        path = f"src/generated/tmp/{filename}"
+        try:
+            self._make_request(
+                method = "POST",
+                endpoint = "files/write",
+                params = {
+                    "arg": f"{IPFS_HOME}/{filename}",
+                    "parents": True
+                },
+                data = {
+                    "file": data
+                }
+            )
+        except requests.exceptions.HTTPError as e:
+            raise RuntimeError(e.response._content.decode()) from e
 
-        # Create the subdirectories locally if they don't already exist
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "wb") as f:
-            # Serialize the data before writing
-            f.write(data)
-
-        # Upload that file
-        subprocess.run(["ipfs", "files", "write", "-t", f"{IPFS_HOME}/{filename}", path], capture_output=True)
-
-        # Remove the temporary file
-        os.remove(path)
 
     def add(self, filename: str, data: bytes) -> None:
         """
@@ -89,23 +93,38 @@ class Ipfs():
             filename (str): The filename for the uploaded data
             data (bytes): The data that will be written to the new file
         """
-        # write data to a local file
-        path = f"src/generated/tmp/{filename}"
-        # create the subdirectories locally if they don't already exist
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        with open(path, "wb") as f:
-            # serialize the data before writing
-            f.write(data)
+        try:
+            self._make_request(
+                method = "POST",
+                endpoint = "add",
+                params = {
+                    "arg": f"{IPFS_HOME}/{filename}",
+                    "to_files": True
+                },
+                data = {
+                    "file": data
+                }
+            )
+        except requests.exceptions.HTTPError as e:
+            raise RuntimeError(e.response._content.decode()) from e
 
-        # create the directory in ipfs
-        directory = "/".join(filename.split("/")[:-1])
-        subprocess.run(["ipfs", "files", "mkdir", "-p",f"{IPFS_HOME}/{directory}"])
+        # # write data to a local file
+        # path = f"src/generated/tmp/{filename}"
+        # # create the subdirectories locally if they don't already exist
+        # os.makedirs(os.path.dirname(path), exist_ok=True)
+        # with open(path, "wb") as f:
+        #     # serialize the data before writing
+        #     f.write(data)
 
-        # upload that file
-        subprocess.run(["ipfs", "add", "-r", path, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
+        # # create the directory in ipfs
+        # directory = "/".join(filename.split("/")[:-1])
+        # subprocess.run(["ipfs", "files", "mkdir", "-p",f"{IPFS_HOME}/{directory}"])
 
-        # remove the temporary file
-        os.remove(path)
+        # # upload that file
+        # subprocess.run(["ipfs", "add", "-r", path, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
+
+        # # remove the temporary file
+        # os.remove(path)
 
     def does_file_exist(self, filename: str) -> bool:
         """
@@ -118,7 +137,7 @@ class Ipfs():
             bool: True if the file exists, false otherwise
         """
         try:
-            response = self._make_request(
+            self._make_request(
                 method = "POST",
                 endpoint = "files/stat",
                 params = {"arg": f"{IPFS_HOME}/{filename}"},
@@ -129,9 +148,9 @@ class Ipfs():
             if 'file does not exist' in e.response._content.decode():
                 return False
 
-            raise RuntimeError(e.response._content.decode())
+            raise RuntimeError(e.response._content.decode()) from e
 
-    def list_files(self, prefix: str) -> List[str]:
+    def list_files(self, prefix: str = "") -> List[str]:
         """
         List the ipfs files in a directory
 
