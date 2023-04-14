@@ -68,17 +68,24 @@ class Store(File):
         return pd.DataFrame.from_dict(pandas_input)
 
     @staticmethod
-    def query(index: Index, ipfs: Ipfs) -> List[Store]:
+    def query(index: Index, ipfs: Ipfs, raise_exceptions: bool = False) -> List[Store]:
         path = index.get_filename()
 
         result = []
         for filename in ipfs.list_files(path):
             has_prefix = index.prefix is not None
 
-            next_index = Index.from_filename(
-                f"{path}/{filename}",
-                has_prefix = has_prefix
-            )
+            try:
+                next_index = Index.from_filename(
+                    f"{path}/{filename}",
+                    has_prefix = has_prefix
+                )
+            except Exception as e:
+                if raise_exceptions:
+                    raise Exception(f"Could not parse filename `{path}/{filename}` for index ```{index}```") from e
+                else:
+                    print(f"Skipped file: {path}/{filename}")
+                    continue
 
             # check for partial queries
             if index.is_partial() and not index.matches(next_index):
@@ -90,6 +97,7 @@ class Store(File):
                 result.append(Store(index = next_index))
 
             else:
+                print(next_index)
                 result += Store.query(index = next_index, ipfs = ipfs)
 
         return result

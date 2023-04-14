@@ -102,10 +102,15 @@ class Index():
         prefix = directories.pop(0) if has_prefix else None
 
         # Get index
-        index = {
-            record.split("_")[0]: record.split("_")[1]
-            for record in directories.pop(0).split(".")
-        }
+        try:
+            index = {
+                record.split("_")[0]: record.split("_")[1]
+                for record in directories.pop(0).split(".")
+            }
+        except IndexError as e:
+            raise Exception(f"Could not parse filename `{filename}` with prefix `{prefix}`") from e
+        except KeyError as e:
+            raise Exception(f"Could not parse filename `{filename}` with prefix `{prefix}`") from e
 
         # Recursively get the subindexes
         subindex = Index.from_filename("/".join(directories)) if len(directories) > 0 else None

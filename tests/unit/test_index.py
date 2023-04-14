@@ -1,3 +1,5 @@
+__package__ = "tests.unit"
+
 import unittest
 from unittest.mock import MagicMock, patch
 from typing import Dict

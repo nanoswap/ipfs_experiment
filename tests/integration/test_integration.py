@@ -1,3 +1,5 @@
+__package__ = "tests.integration"
+
 from src.ipfs import Ipfs, IPFS_HOME
 from unittest.mock import patch, Mock, MagicMock, call, mock_open
 from google.protobuf.message import Message

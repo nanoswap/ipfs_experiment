@@ -1,3 +1,5 @@
+__package__ = "tests.unit"
+
 from typing import Dict
 from uuid import UUID
 from unittest.mock import Mock

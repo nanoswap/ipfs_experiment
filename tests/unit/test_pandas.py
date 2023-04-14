@@ -1,3 +1,5 @@
+__package__ = "tests.unit"
+
 import pandas as pd
 import pytest
 from typing import List

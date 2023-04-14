@@ -4,6 +4,7 @@ import nox
 @nox.session(python=["python3"])
 def build(session: nox.Session) -> None:
     session.install("build")
+    session.env["PYTHONPATH"] = "src"
     session.run("python", "-m", "build")
 
 
@@ -13,6 +14,7 @@ def tests(session: nox.Session) -> None:
     session.install("-r", "requirements-dev.txt")
     session.install('pytest')
     session.install("pytest-cov")
+    session.env["PYTHONPATH"] = "src"
     session.run("pytest", "--cov=src")
 
 # @nox.session
