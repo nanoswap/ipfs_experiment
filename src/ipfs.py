@@ -23,6 +23,11 @@ class Ipfs():
             response.raise_for_status()
         return response.content
 
+    def _get_dag(self, filename):
+        # need this to pass into files/write
+        # https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-dag-get
+        pass
+
     def mkdir(self, directory_name: str, with_home = True) -> None:
         """
         Create a directory in ipfs
@@ -74,7 +79,7 @@ class Ipfs():
                 endpoint = "files/write",
                 params = {
                     "arg": f"{IPFS_HOME}/{filename}",
-                    "parents": True
+                    "raw-leaves": True
                 },
                 data = {
                     "file": data
@@ -98,33 +103,15 @@ class Ipfs():
                 method = "POST",
                 endpoint = "add",
                 params = {
-                    "arg": f"{IPFS_HOME}/{filename}",
-                    "to_files": True
+                    "to-files": f"{IPFS_HOME}/{filename}",
+                    "raw-leaves": True
                 },
                 data = {
-                    "file": data
+                    filename: data
                 }
             )
         except requests.exceptions.HTTPError as e:
             raise RuntimeError(e.response._content.decode()) from e
-
-        # # write data to a local file
-        # path = f"src/generated/tmp/{filename}"
-        # # create the subdirectories locally if they don't already exist
-        # os.makedirs(os.path.dirname(path), exist_ok=True)
-        # with open(path, "wb") as f:
-        #     # serialize the data before writing
-        #     f.write(data)
-
-        # # create the directory in ipfs
-        # directory = "/".join(filename.split("/")[:-1])
-        # subprocess.run(["ipfs", "files", "mkdir", "-p",f"{IPFS_HOME}/{directory}"])
-
-        # # upload that file
-        # subprocess.run(["ipfs", "add", "-r", path, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
-
-        # # remove the temporary file
-        # os.remove(path)
 
     def does_file_exist(self, filename: str) -> bool:
         """
@@ -137,13 +124,13 @@ class Ipfs():
             bool: True if the file exists, false otherwise
         """
         try:
-            self._make_request(
+            response = self._make_request(
                 method = "POST",
                 endpoint = "files/stat",
                 params = {"arg": f"{IPFS_HOME}/{filename}"},
                 raise_for_status = False
             )
-            return True
+            return 'file does not exist' not in response.decode()
         except requests.exceptions.HTTPError as e:
             if 'file does not exist' in e.response._content.decode():
                 return False
@@ -160,9 +147,19 @@ class Ipfs():
         Returns:
             List[str]: The list of filenames found at that location
         """
-        process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
-        files = process.stdout.decode().split("\n")
-        return [file for file in files if file]
+
+        try:
+            # TODO: parse results
+            #   b'{"Entries":[{"Name":"Tjupyter_test","Type":0,"Size":0,"Hash":""},{"Name":"identity","Type":0,"Size":0,"Hash":""},{"Name":"jupyter_test","Type":0,"Size":0,"Hash":""},{"Name":"loan","Type":0,"Size":0,"Hash":""},{"Name":"test_directory_2","Type":0,"Size":0,"Hash":""},{"Name":"var","Type":0,"Size":0,"Hash":""}]}\n'
+            return self._make_request(
+                method = "POST",
+                endpoint = "files/ls",
+                params = {"arg": f"{IPFS_HOME}/{prefix}"},
+                raise_for_status = False
+            )
+        except requests.exceptions.HTTPError as e:
+            raise RuntimeError(e.response._content.decode()) from e
+        
 
     def delete(self, filename: str) -> None:
         """
@@ -171,4 +168,16 @@ class Ipfs():
         Args:
             filename (str): The filename to delete
         """
-        subprocess.run(["ipfs", "files", "rm", "-r", f"{IPFS_HOME}/{filename}"], capture_output=True)
+
+        try:
+            self._make_request(
+                method = "POST",
+                endpoint = "files/rm",
+                params = {
+                    "arg": f"{IPFS_HOME}/{filename}",
+                    "recursive": True
+                },
+                raise_for_status = False
+            )
+        except requests.exceptions.HTTPError as e:
+            raise RuntimeError(e.response._content.decode()) from e
