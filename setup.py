@@ -8,16 +8,16 @@ def load_long_description(filename: str) -> str:
         return f.read()
 
 setup(
-    name="ipfs_experiment",
+    name="ipfs-kvs",
     version="0.0.1",
     author="Nathaniel Schultz",
     author_email="nate@nanoswap.finance",
     description="IPFS Experiment",
     long_description=load_long_description("README.md"),
     long_description_content_type="text/markdown",
-    url="https://github.com/nanoswap/ipfs_experiment/issues",
+    url="https://github.com/nanoswap/ipfs-kvs",
     project_urls={
-        "Bug Tracker": "https://github.com/mahesh-maximus/helloworld-pyp/issues",
+        "Bug Tracker": "https://github.com/nanoswap/ipfs-kvs/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",

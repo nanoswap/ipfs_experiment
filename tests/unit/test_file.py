@@ -1,9 +1,11 @@
+__package__ = "tests.unit"
+
 import unittest
 from unittest.mock import patch, MagicMock
 from src.file import File
 
 class TestFile(unittest.TestCase):
-    @patch('src.ipfs.read')
+    @patch('src.ipfs.Ipfs.read')
     def test_read_success(self, mock_read):
         # Arrange
         mock_read.return_value = b'some file contents'
@@ -18,7 +20,7 @@ class TestFile(unittest.TestCase):
         # Assert
         mock_read.assert_called_once_with('testfile')
 
-    @patch('src.ipfs.read')
+    @patch('src.ipfs.Ipfs.read')
     def test_read_failure(self, mock_read):
         # Arrange
         mock_read.return_value = None
@@ -31,7 +33,7 @@ class TestFile(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             file.read()
 
-    @patch('src.ipfs.write')
+    @patch('src.ipfs.Ipfs.write')
     def test_write(self, mock_write):
         # Arrange
         file = File()
@@ -46,7 +48,7 @@ class TestFile(unittest.TestCase):
         # Assert
         mock_write.assert_called_once_with('testfile', b'some data to write')
 
-    @patch('src.ipfs.add')
+    @patch('src.ipfs.Ipfs.add')
     def test_add(self, mock_add):
         # Arrange
         file = File()
@@ -61,7 +63,7 @@ class TestFile(unittest.TestCase):
         # Assert
         mock_add.assert_called_once_with('testfile', b'some data to write')
 
-    @patch('src.ipfs.delete')
+    @patch('src.ipfs.Ipfs.delete')
     def test_delete(self, mock_delete):
         # Arrange
         file = File()

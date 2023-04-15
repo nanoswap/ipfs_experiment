@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Dict
 from uuid import UUID
+import json
 
 class Index():
     prefix: str
@@ -20,23 +21,21 @@ class Index():
         self.size = size if size else len(index.keys())
 
     def __str__(self) -> str:
-        result = "\n----- Index object -----\n"
-        result += f"  filename: {self.get_filename()}\n"
-        result += f"  is_partial: {self.is_partial()}\n"
-        result += f"  size: {self.size}\n"
-        result += f"  has_subindex: {self.subindex is not None}\n"
-        result += f"  index: {self.index}\n"
-        return result
-    
+        return json.dumps(self.to_dict(), sort_keys=True, indent=4)
+
+    def to_dict(self) -> dict:
+        return {
+            "prefix": self.prefix,
+            "index": self.index,
+            "subindex": self.subindex.to_dict() if self.subindex else None
+        }
+
     def __eq__(self, other_index: Index) -> bool:
-        print(str(self))
-        print(str(other_index))
         result = \
             self.prefix == other_index.prefix and \
             self.size == other_index.size and \
             self.subindex == other_index.subindex and \
             self.index == other_index.index
-        print(result)
         return result
 
     def matches(self, other_index: Index) -> bool:
@@ -102,10 +101,15 @@ class Index():
         prefix = directories.pop(0) if has_prefix else None
 
         # Get index
-        index = {
-            record.split("_")[0]: record.split("_")[1]
-            for record in directories.pop(0).split(".")
-        }
+        try:
+            index = {
+                record.split("_")[0]: record.split("_")[1]
+                for record in directories.pop(0).split(".")
+            }
+        except IndexError as e:
+            raise Exception(f"Could not parse filename `{filename}` with prefix `{prefix}`") from e
+        except KeyError as e:
+            raise Exception(f"Could not parse filename `{filename}` with prefix `{prefix}`") from e
 
         # Recursively get the subindexes
         subindex = Index.from_filename("/".join(directories)) if len(directories) > 0 else None

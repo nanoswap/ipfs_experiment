@@ -1,9 +1,12 @@
+__package__ = "tests.integration"
+
 import unittest
 from faker import Faker
 import uuid
 from src.index import Index
 from src.store import Store
 from protobuf.sample_pb2 import Example, Type
+from src.ipfs import Ipfs
 
 Faker.seed(0)
 fake = Faker()
@@ -69,7 +72,7 @@ class TestStore(unittest.TestCase):
             },
             prefix="loan"
         )
-        results = list(Store.query(query_index))
+        results = list(Store.query(query_index = query_index, ipfs = Ipfs(), reader = Example()))
 
         # check that the result matches the original data
         self.assertEqual(len(results), 1)
@@ -104,7 +107,7 @@ class TestStore(unittest.TestCase):
             prefix="loan",
             size=2
         )
-        results = list(Store.query(query_index))
+        results = list(Store.query(query_index, Ipfs(), Example()))
 
         # check that the result matches the original data
         self.assertEqual(len(results), 1)

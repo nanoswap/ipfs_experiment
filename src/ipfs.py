@@ -1,118 +1,247 @@
+from dataclasses import dataclass
 import subprocess
 from typing import List
 from google.protobuf.message import Message
 import os
+import requests
+import json
+from multicodec import add_prefix, remove_prefix, get_codec
+from protobuf.sample_pb2 import Example, Type
 
 IPFS_HOME =  "/data"
 
-def mkdir(directory_name: str) -> None:
-    """
-    Create a directory in ipfs
+@dataclass
+class Ipfs():
 
-    Args:
-        directory_name (str): The name of the directory to create
-    """
-    subprocess.run(["ipfs", "files", "mkdir", directory_name])
+    def __init__(self, host: str = "http://127.0.0.1", port: int = 5001, version: str = "v0"):
+        self.host = host
+        self.port = port
+        self.version = version
 
-def read(filename: str) -> bytes:
-    """
-    Read a file from ipfs
+    def _make_request(self, endpoint: str, params: dict = None, files: dict = None, raise_for_status: bool = True):
+        url = f"{self.host}:{self.port}/api/{self.version}/{endpoint}"
+        response = requests.post(url, params = params, files = files)
+        if raise_for_status:
+            response.raise_for_status()
+        return response.content
 
-    Args:
-        filename (str): The file to read
+    def _dag_put(self, data: bytes) -> str:
+        try:
+            response = self._make_request(
+                endpoint = "dag/put",
+                params = {
+                    "store-codec": "raw",
+                    "input-codec": "raw"
+                },
+                files = {
+                    "object data": add_prefix('raw', data)
+                },
+                raise_for_status = False
+            )
+            result = json.loads(response.decode())
+            return result["Cid"]["/"]
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
 
-    Returns:
-        (bytes): The file contents
-    """
-    # download the data
-    result = subprocess.run(["ipfs", "files", "read", f"{IPFS_HOME}/{filename}"], capture_output=True)
+    def _dag_get(self, filename: str) -> str:
+        try:
+            response = self._make_request(
+                endpoint = "dag/get",
+                params = {
+                    "arg": filename,
+                    # "output-codec": "raw"
+                },
+                raise_for_status = False
+            )
+            return json.loads(response.decode())
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
 
-    # return the data
-    return result.stdout
+    def mkdir(self, directory_name: str, with_home = True) -> None:
+        """
+        Create a directory in ipfs
 
-def write(filename: str, data: bytes) -> None:
-    """
-    Update an existing file
+        Args:
+            directory_name (str): The name of the directory to create
+        """
 
-    Args:
-        filename (str): The file to update
-        data (Message): The data to overwrite the file with
-    """
-    # Write data to a local file
-    path = f"src/generated/tmp/{filename}"
+        # Split the filename into its directory and basename components
+        parts = os.path.split(directory_name)
+        
+        # If the directory part is not empty, create it recursively
+        if parts[0]:
+            self.mkdir(parts[0])
+            
+        path = f"{IPFS_HOME}/{directory_name}" if with_home else f"/{directory_name}"
+        try:
+            self._make_request(
+                endpoint = "files/mkdir",
+                params = {"arg": path},
+                raise_for_status = False
+            )
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
 
-    # Create the subdirectories locally if they don't already exist
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as f:
-        # Serialize the data before writing
-        f.write(data)
+    def read(self, filename: str) -> bytes:
+        """
+        Read a file from ipfs
 
-    # Upload that file
-    subprocess.run(["ipfs", "files", "write", "-t", f"{IPFS_HOME}/{filename}", path], capture_output=True)
+        Args:
+            filename (str): The file to read
 
-    # Remove the temporary file
-    subprocess.run(["rm", path])
+        Returns:
+            (bytes): The file contents
+        """
+        try:
+            return self._make_request(
+                endpoint = "files/read",
+                params = {"arg": f"{IPFS_HOME}/{filename}"},
+            )
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
 
-def add(filename: str, data: bytes) -> None:
-    """
-    Create a new file in ipfs.
-    This does not work for updating existing files.
+    def write(self, filename: str, data: bytes) -> None:
+        
+        raise NotImplementedError("For now, just use `add` and `delete`")
 
-    Args:
-        filename (str): The filename for the uploaded data
-        data (bytes): The data that will be written to the new file
-    """
-    # write data to a local file
-    path = f"src/generated/tmp/{filename}"
-    # create the subdirectories locally if they don't already exist
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "wb") as f:
-        # serialize the data before writing
-        f.write(data)
+        try:
+            stat = self.stat(filename)
+            dag = self._dag_get(stat["Hash"])
+            # print(dag)
+            # print(dag["/"]["bytes"].encode)
+            example = Example()
+            example.ParseFromString(dag)
+            self._make_request(
+                endpoint = "files/write",
+                params = {
+                    "arg": f"{IPFS_HOME}/{filename}",
+                    "truncate": True,
+                    "raw-leaves": True
+                },
+                files = {
+                    'file': example.SerializeToString()
+                }
+            )
+        except requests.exceptions.HTTPError as e:
+            raise RuntimeError(e.response._content.decode()) from e
 
-    # create the directory in ipfs
-    directory = "/".join(filename.split("/")[:-1])
-    subprocess.run(["ipfs", "files", "mkdir", "-p",f"{IPFS_HOME}/{directory}"])
+    def add(self, filename: str, data: bytes) -> None:
+        """
+        Create a new file in ipfs.
+        This does not work for updating existing files.
 
-    # upload that file
-    subprocess.run(["ipfs", "add", "-r", path, "--to-files", f"{IPFS_HOME}/{filename}"], capture_output=True)
+        Args:
+            filename (str): The filename for the uploaded data
+            data (bytes): The data that will be written to the new file
+        """
+        # Split the filename into its directory and basename components
+        parts = os.path.split(filename)
+        
+        # If the directory part is not empty, create it recursively
+        if parts[0]:
+            self.mkdir(parts[0])
 
-    # remove the temporary file
-    subprocess.run(["rm", path])
+        try:
+            self._make_request(
+                endpoint = "add",
+                params = {
+                    "to-files": f"{IPFS_HOME}/{filename}",
+                    "raw-leaves": True
+                },
+                files = {
+                    'file': data
+                }
+            )
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
 
-def does_file_exist(filename: str) -> bool:
-    """
-    Check if a file exists in ipfs
+    def does_file_exist(self, filename: str) -> bool:
+        """
+        Check if a file exists in ipfs
 
-    Args:
-        filename (str): The file to check
+        Args:
+            filename (str): The file to check
 
-    Returns:
-        bool: True if the file exists, false otherwise
-    """
-    process = subprocess.run(["ipfs", "files", "stat", f"{IPFS_HOME}/{filename}"], capture_output=True)
-    does_not_exist = ( process.returncode == 1 and "file does not exist" in process.stderr.decode() )
-    return not does_not_exist
+        Returns:
+            bool: True if the file exists, false otherwise
+        """
+        try:
+            response = self._make_request(
+                endpoint = "files/stat",
+                params = {"arg": f"{IPFS_HOME}/{filename}"},
+                raise_for_status = False
+            )
+            return 'file does not exist' not in response.decode()
+        except Exception as e:
+            print(e)
+            if 'file does not exist' in e.response._content.decode():
+                return False
 
-def list_files(prefix: str) -> List[str]:
-    """
-    List the ipfs files in a directory
+            raise RuntimeError(e.response._content.decode()) from e
 
-    Args:
-        prefix (str): The path to search on ipfs
+    def stat(self, filename) -> List[str]:
+        """
+        List the ipfs files in a directory
 
-    Returns:
-        List[str]: The list of filenames found at that location
-    """
-    process = subprocess.run(["ipfs", "files", "ls", f"{IPFS_HOME}/{prefix}"], capture_output=True)
-    files = process.stdout.decode().split("\n")
-    return [file for file in files if file]
+        Args:
+            prefix (str): The path to search on ipfs
 
-def delete(filename: str) -> None:
-    """
-    Delete a file from ipfs
+        Returns:
+            List[str]: The list of filenames found at that location
+        """
+        try:
+            return json.loads(self._make_request(
+                endpoint = "files/stat",
+                params = {"arg": f"{IPFS_HOME}/{filename}"},
+                raise_for_status = False
+            ))
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
 
-    Args:
-        filename (str): The filename to delete
-    """
-    subprocess.run(["ipfs", "files", "rm", "-r", f"{IPFS_HOME}/{filename}"], capture_output=True)
+    def list_files(self, prefix: str = "") -> List[str]:
+        """
+        List the ipfs files in a directory
+
+        Args:
+            prefix (str): The path to search on ipfs
+
+        Returns:
+            List[str]: The list of filenames found at that location
+        """
+        try:
+            return json.loads(self._make_request(
+                endpoint = "files/ls",
+                params = {"arg": f"{IPFS_HOME}/{prefix}"},
+                raise_for_status = False
+            ))
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
+        
+
+    def delete(self, filename: str) -> None:
+        """
+        Delete a file from ipfs
+
+        Args:
+            filename (str): The filename to delete
+        """
+
+        try:
+            self._make_request(
+                endpoint = "files/rm",
+                params = {
+                    "arg": f"{IPFS_HOME}/{filename}",
+                    "recursive": True
+                },
+                raise_for_status = False
+            )
+        except Exception as e:
+            print(e)
+            raise RuntimeError(e.response._content.decode()) from e
