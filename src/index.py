@@ -29,13 +29,6 @@ class Index():
     def __str__(self) -> str:
         return json.dumps(self.to_dict(), sort_keys=True, indent=4)
 
-    def to_dict(self) -> dict:
-        return {
-            "prefix": self.prefix,
-            "index": self.index,
-            "subindex": self.subindex.to_dict() if self.subindex else None
-        }
-
     def __eq__(self, other_index: Index) -> bool:
         result = \
             self.prefix == other_index.prefix and \
@@ -43,6 +36,13 @@ class Index():
             self.subindex == other_index.subindex and \
             self.index == other_index.index
         return result
+
+    def to_dict(self) -> dict:
+        return {
+            "prefix": self.prefix,
+            "index": self.index,
+            "subindex": self.subindex.to_dict() if self.subindex else None
+        }
 
     def matches(self, other_index: Index) -> bool:
         """

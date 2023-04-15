@@ -31,8 +31,6 @@ class Store(File):
             protobuf_parsers: Dict[str, FunctionType]) -> pd.DataFrame:
         """
         Convert a list of Store objects to a pandas dataframe.
-        This function will read the data for each file,
-            and include it in the result.
         The data for each Store must be read into memory beforehand;
             using `store.read()`
 

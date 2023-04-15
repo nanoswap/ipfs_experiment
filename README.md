@@ -11,6 +11,9 @@ cd protobuf;
 protoc --python_out=../proto --proto_path=protobuf protobuf/sample.proto
 ```
 
+## Build docs
+`mkdocs serve`
+
 ## Run the ipfs daemon
 ```
 ipfs daemon --api /ip4/0.0.0.0/tcp/5001
