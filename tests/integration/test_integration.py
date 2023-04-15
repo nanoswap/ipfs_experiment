@@ -1,11 +1,9 @@
 __package__ = "tests.integration"
 
-from src.ipfs import Ipfs, IPFS_HOME
-from unittest.mock import patch, Mock, MagicMock, call, mock_open
-from google.protobuf.message import Message
-import os
+from src.ipfs import Ipfs
 
 ipfs = Ipfs()
+
 
 def test_mkdir() -> None:
     """ Test the `utils.mkdir` function """
@@ -21,4 +19,3 @@ def test_mkdir() -> None:
 
     # Cleanup: delete the directory
     ipfs.delete(directory_name)
-

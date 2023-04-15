@@ -21,4 +21,4 @@ def tests(session: nox.Session) -> None:
 @nox.session
 def lint(session):
     session.install('flake8')
-    session.run('flake8')
+    session.run('flake8', 'src')

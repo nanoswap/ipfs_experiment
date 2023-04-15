@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from src.file import File
 
+
 class TestFile(unittest.TestCase):
     @patch('src.ipfs.Ipfs.read')
     def test_read_success(self, mock_read):
@@ -75,6 +76,3 @@ class TestFile(unittest.TestCase):
 
         # Assert
         mock_delete.assert_called_once_with('testfile')
-
-if __name__ == '__main__':
-    unittest.main()

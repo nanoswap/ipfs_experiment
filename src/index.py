@@ -3,17 +3,23 @@ from typing import Dict
 from uuid import UUID
 import json
 
+
 class Index():
     prefix: str
     index: Dict[str, UUID]
-    size: int  # number of keys in this index (not including parent or subindex)
+    size: int  # number of keys in this index (not including parent or subindex)  # noqa: E501
     subindex: Index
 
-    def __init__(self, index: Dict[str, UUID], subindex: Index = None, prefix: str = None, size: int = None):
+    def __init__(
+            self,
+            index: Dict[str, UUID],
+            subindex: Index = None,
+            prefix: str = None,
+            size: int = None):
         """
             Index keys should be all one word lower case.
             Index values should be UUIDs.
-            The prefix should only be on the root/parent index (not in subindex)
+            The prefix should only be on the root/parent index (not in subindex)  # noqa: E501
         """
         self.prefix = prefix
         self.index = index
@@ -42,7 +48,8 @@ class Index():
         """
             Check if this index has a compatible index with another index.
             Returns false if any self keys are not in the other index
-                or if any values in self are not equal to the corresponding value in the other index
+                or if any values in self are not equal to the
+                corresponding value in the other index
         """
         for key in self.index:
             if key not in other_index.index:
@@ -55,19 +62,19 @@ class Index():
 
     def is_partial(self) -> bool:
         return self.size != len(self.index.keys())
-    
+
     def get_metadata(self) -> Dict[str, UUID]:
         """ Parse the subindex/filename data """
         filename = self.get_filename()  # recursively get subindex data
         records = filename.split("/")
         if self.prefix:
             records.pop(0)
-        
+
         result = {}
         for index_level in records:
             for index in index_level.split("."):
                 result[index.split("_")[0]] = index.split("_")[1]
-        
+
         return result
 
     def get_filename(self) -> str:
@@ -83,7 +90,9 @@ class Index():
             return result
 
         # Add current index
-        cur_index = ".".join([f'{key}_{value}' for key, value in self.index.items()])
+        cur_index = ".".join([
+            f'{key}_{value}' for key, value in self.index.items()
+        ])
         result += cur_index
 
         # Recursively add subindexes
@@ -107,11 +116,11 @@ class Index():
                 for record in directories.pop(0).split(".")
             }
         except IndexError as e:
-            raise Exception(f"Could not parse filename `{filename}` with prefix `{prefix}`") from e
+            raise Exception(f"Could not parse filename `{filename}` with prefix `{prefix}`") from e  # noqa: E501
         except KeyError as e:
-            raise Exception(f"Could not parse filename `{filename}` with prefix `{prefix}`") from e
+            raise Exception(f"Could not parse filename `{filename}` with prefix `{prefix}`") from e  # noqa: E501
 
         # Recursively get the subindexes
-        subindex = Index.from_filename("/".join(directories)) if len(directories) > 0 else None
+        subindex = Index.from_filename("/".join(directories)) if len(directories) > 0 else None  # noqa: E501
 
         return Index(index, subindex, prefix)

@@ -4,6 +4,7 @@ from google.protobuf.message import Message
 import errno
 import os
 
+
 class File:
     writer: Message
     reader: Message
@@ -16,15 +17,25 @@ class File:
         filename = self.index.get_filename()
         result = self.ipfs.read(filename)
         if not result:
-            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), filename)
+            raise FileNotFoundError(
+                errno.ENOENT,
+                os.strerror(errno.ENOENT),
+                filename
+            )
 
         self.reader.ParseFromString(result)
 
     def write(self) -> None:
-        self.ipfs.write(self.index.get_filename(), self.writer.SerializeToString())
-    
+        self.ipfs.write(
+            self.index.get_filename(),
+            self.writer.SerializeToString()
+        )
+
     def add(self) -> None:
-        self.ipfs.add(self.index.get_filename(), self.writer.SerializeToString())
+        self.ipfs.add(
+            self.index.get_filename(),
+            self.writer.SerializeToString()
+        )
 
     def delete(self) -> None:
         """ Only needed for local testing """

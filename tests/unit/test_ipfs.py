@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock
 from src.ipfs import Ipfs
 import requests
 
+
 class TestIpfs(unittest.TestCase):
 
     @patch('src.ipfs.requests.post')
@@ -61,7 +62,13 @@ class TestIpfs(unittest.TestCase):
     @patch('src.ipfs.requests.post')
     def test_does_file_exist_false(self, mock_post):
         ipfs = Ipfs()
-        mock_post.side_effect = requests.exceptions.HTTPError("file does not exist", response=MagicMock(status_code=404, _content=b'file does not exist'))
+        mock_post.side_effect = requests.exceptions.HTTPError(
+            "file does not exist",
+            response=MagicMock(
+                status_code=404, 
+                _content=b'file does not exist'
+            )
+        )
         result = ipfs.does_file_exist("test_file")
         mock_post.assert_called_with(
             "http://127.0.0.1:5001/api/v0/files/stat",
@@ -73,7 +80,7 @@ class TestIpfs(unittest.TestCase):
     @patch('src.ipfs.requests.post')
     def test_stat(self, mock_post):
         ipfs = Ipfs()
-        mock_post.return_value.content = b'{"Type": 2, "CumulativeSize": 0, "Blocks": 0}'
+        mock_post.return_value.content = b'{"Type": 2, "CumulativeSize": 0, "Blocks": 0}'  # noqa: E501
         result = ipfs.stat("test_file")
         mock_post.assert_called_with(
             "http://127.0.0.1:5001/api/v0/files/stat",
@@ -81,25 +88,6 @@ class TestIpfs(unittest.TestCase):
             files=None
         )
         self.assertEqual(result, {"Type": 2, "CumulativeSize": 0, "Blocks": 0})
-
-    # @patch('src.ipfs.requests.post')
-    # def test_list_files(self, mock_post):
-    #     ipfs = Ipfs()
-    #     # Mock the response from _make_request
-    #     mock_post.return_value.content = b'{"Objects": [{"Links": [{"Name": "file1.txt"}]}]}'
-
-    #     # Call the function
-    #     files = ipfs.list_files("path/to/dir")
-
-    #     # Assert that the correct params were passed to _make_request
-    #     mock_post.assert_called_with(
-    #         "http://127.0.0.1:5001/api/v0/files/ls",
-    #         params={"arg": "/data/path/to/dir"},
-    #         files=None
-    #     )
-
-    #     # Assert that the response is what we expect
-    #     self.assertEqual(files, ["file1.txt"])
 
     @patch('src.ipfs.requests.post')
     def test_delete(self, mock_post):

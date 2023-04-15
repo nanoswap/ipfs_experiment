@@ -11,6 +11,7 @@ from src.ipfs import Ipfs
 Faker.seed(0)
 fake = Faker()
 
+
 class TestStore(unittest.TestCase):
     def setUp(self):
         self.borrower = str(uuid.uuid4())
@@ -72,7 +73,13 @@ class TestStore(unittest.TestCase):
             },
             prefix="loan"
         )
-        results = list(Store.query(query_index = query_index, ipfs = Ipfs(), reader = Example()))
+        results = list(
+            Store.query(
+                query_index=query_index,
+                ipfs=Ipfs(),
+                reader=Example()
+            )
+        )
 
         # check that the result matches the original data
         self.assertEqual(len(results), 1)

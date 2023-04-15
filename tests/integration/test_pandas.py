@@ -1,14 +1,11 @@
-__package__ = "tests.unit"
 __package__ = "tests.integration"
 
 import unittest
-import pandas as pd
-import pytest
-from typing import List
 from src.store import Store
 from src.index import Index
 from protobuf.sample_pb2 import Example, Type
 import uuid
+
 
 class TestPandas(unittest.TestCase):
 
@@ -43,16 +40,48 @@ class TestPandas(unittest.TestCase):
         self.payment_3 = str(uuid.uuid4())
         self.payment_4 = str(uuid.uuid4())
         self.payment_data_1 = Example(type=Type.FIZZ, content="lorem")
-        self.payment_data_2 = Example(type=Type.FIZZ, content="!@#$%^&*()-+_= ASDFASDFASDF")
+        self.payment_data_2 = Example(type=Type.FIZZ, content="!@#$%^&*()-+_=")
         self.payment_data_3 = Example(type=Type.BUZZ, content="😀😀😀😀😀")
         self.payment_data_4 = Example(type=Type.FIZZ, content="sample text")
 
         # Create some sample Store objects for testing
         return [
-            Store(TestPandas.generate_index(self.borrower_1, self.lender, self.loan_1, self.payment_1), reader=self.payment_data_1),
-            Store(TestPandas.generate_index(self.borrower_1, self.lender, self.loan_1, self.payment_2), reader=self.payment_data_2),
-            Store(TestPandas.generate_index(self.borrower_2, self.lender, self.loan_2, self.payment_3), reader=self.payment_data_3),
-            Store(TestPandas.generate_index(self.borrower_2, self.borrower_1, self.loan_3, self.payment_4), reader=self.payment_data_4),
+            Store(
+                index=TestPandas.generate_index(
+                    borrower=self.borrower_1,
+                    lender=self.lender,
+                    loan=self.loan_1,
+                    payment=self.payment_1
+                ),
+                reader=self.payment_data_1
+            ),
+            Store(
+                index=TestPandas.generate_index(
+                    borrower=self.borrower_1,
+                    lender=self.lender,
+                    loan=self.loan_1,
+                    payment=self.payment_2
+                ),
+                reader=self.payment_data_2
+            ),
+            Store(
+                index=TestPandas.generate_index(
+                    borrower=self.borrower_2,
+                    lender=self.lender,
+                    loan=self.loan_2,
+                    payment=self.payment_3
+                ),
+                reader=self.payment_data_3
+            ),
+            Store(
+                index=TestPandas.generate_index(
+                    borrower=self.borrower_2,
+                    lender=self.borrower_1,
+                    loan=self.loan_3,
+                    payment=self.payment_4
+                ),
+                reader=self.payment_data_4
+            ),
         ]
 
     def test_to_dataframe(self):
@@ -63,7 +92,9 @@ class TestPandas(unittest.TestCase):
         })
 
         # test column names
-        assert df.columns.tolist() == ['borrower', 'lender', 'loan', 'payment', 'content', 'type']
+        assert df.columns.tolist() == [
+            'borrower', 'lender', 'loan', 'payment', 'content', 'type'
+        ]
 
         # test data values
         assert df.iloc[0]['borrower'] == self.borrower_1

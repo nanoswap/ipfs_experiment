@@ -1,26 +1,34 @@
 from dataclasses import dataclass
-import subprocess
 from typing import List
-from google.protobuf.message import Message
 import os
 import requests
 import json
-from multicodec import add_prefix, remove_prefix, get_codec
-from protobuf.sample_pb2 import Example, Type
+from multicodec import add_prefix
+from protobuf.sample_pb2 import Example
 
-IPFS_HOME =  "/data"
+IPFS_HOME = "/data"
+
 
 @dataclass
 class Ipfs():
 
-    def __init__(self, host: str = "http://127.0.0.1", port: int = 5001, version: str = "v0"):
+    def __init__(
+            self,
+            host: str = "http://127.0.0.1",
+            port: int = 5001,
+            version: str = "v0"):
         self.host = host
         self.port = port
         self.version = version
 
-    def _make_request(self, endpoint: str, params: dict = None, files: dict = None, raise_for_status: bool = True):
+    def _make_request(
+            self,
+            endpoint: str,
+            params: dict = None,
+            files: dict = None,
+            raise_for_status: bool = True):
         url = f"{self.host}:{self.port}/api/{self.version}/{endpoint}"
-        response = requests.post(url, params = params, files = files)
+        response = requests.post(url, params=params, files=files)
         if raise_for_status:
             response.raise_for_status()
         return response.content
@@ -28,15 +36,15 @@ class Ipfs():
     def _dag_put(self, data: bytes) -> str:
         try:
             response = self._make_request(
-                endpoint = "dag/put",
-                params = {
+                endpoint="dag/put",
+                params={
                     "store-codec": "raw",
                     "input-codec": "raw"
                 },
-                files = {
+                files={
                     "object data": add_prefix('raw', data)
                 },
-                raise_for_status = False
+                raise_for_status=False
             )
             result = json.loads(response.decode())
             return result["Cid"]["/"]
@@ -47,19 +55,19 @@ class Ipfs():
     def _dag_get(self, filename: str) -> str:
         try:
             response = self._make_request(
-                endpoint = "dag/get",
-                params = {
+                endpoint="dag/get",
+                params={
                     "arg": filename,
                     # "output-codec": "raw"
                 },
-                raise_for_status = False
+                raise_for_status=False
             )
             return json.loads(response.decode())
         except Exception as e:
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
-    def mkdir(self, directory_name: str, with_home = True) -> None:
+    def mkdir(self, directory_name: str, with_home: bool = True) -> None:
         """
         Create a directory in ipfs
 
@@ -69,17 +77,17 @@ class Ipfs():
 
         # Split the filename into its directory and basename components
         parts = os.path.split(directory_name)
-        
+
         # If the directory part is not empty, create it recursively
         if parts[0]:
             self.mkdir(parts[0])
-            
-        path = f"{IPFS_HOME}/{directory_name}" if with_home else f"/{directory_name}"
+
+        path = f"{IPFS_HOME}/{directory_name}" if with_home else f"/{directory_name}"  # noqa: E501
         try:
             self._make_request(
-                endpoint = "files/mkdir",
-                params = {"arg": path},
-                raise_for_status = False
+                endpoint="files/mkdir",
+                params={"arg": path},
+                raise_for_status=False
             )
         except Exception as e:
             print(e)
@@ -97,15 +105,15 @@ class Ipfs():
         """
         try:
             return self._make_request(
-                endpoint = "files/read",
-                params = {"arg": f"{IPFS_HOME}/{filename}"},
+                endpoint="files/read",
+                params={"arg": f"{IPFS_HOME}/{filename}"},
             )
         except Exception as e:
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
     def write(self, filename: str, data: bytes) -> None:
-        
+
         raise NotImplementedError("For now, just use `add` and `delete`")
 
         try:
@@ -116,13 +124,13 @@ class Ipfs():
             example = Example()
             example.ParseFromString(dag)
             self._make_request(
-                endpoint = "files/write",
-                params = {
+                endpoint="files/write",
+                params={
                     "arg": f"{IPFS_HOME}/{filename}",
                     "truncate": True,
                     "raw-leaves": True
                 },
-                files = {
+                files={
                     'file': example.SerializeToString()
                 }
             )
@@ -140,19 +148,19 @@ class Ipfs():
         """
         # Split the filename into its directory and basename components
         parts = os.path.split(filename)
-        
+
         # If the directory part is not empty, create it recursively
         if parts[0]:
             self.mkdir(parts[0])
 
         try:
             self._make_request(
-                endpoint = "add",
-                params = {
+                endpoint="add",
+                params={
                     "to-files": f"{IPFS_HOME}/{filename}",
                     "raw-leaves": True
                 },
-                files = {
+                files={
                     'file': data
                 }
             )
@@ -172,9 +180,9 @@ class Ipfs():
         """
         try:
             response = self._make_request(
-                endpoint = "files/stat",
-                params = {"arg": f"{IPFS_HOME}/{filename}"},
-                raise_for_status = False
+                endpoint="files/stat",
+                params={"arg": f"{IPFS_HOME}/{filename}"},
+                raise_for_status=False
             )
             return 'file does not exist' not in response.decode()
         except Exception as e:
@@ -196,9 +204,9 @@ class Ipfs():
         """
         try:
             return json.loads(self._make_request(
-                endpoint = "files/stat",
-                params = {"arg": f"{IPFS_HOME}/{filename}"},
-                raise_for_status = False
+                endpoint="files/stat",
+                params={"arg": f"{IPFS_HOME}/{filename}"},
+                raise_for_status=False
             ))
         except Exception as e:
             print(e)
@@ -216,14 +224,13 @@ class Ipfs():
         """
         try:
             return json.loads(self._make_request(
-                endpoint = "files/ls",
-                params = {"arg": f"{IPFS_HOME}/{prefix}"},
-                raise_for_status = False
+                endpoint="files/ls",
+                params={"arg": f"{IPFS_HOME}/{prefix}"},
+                raise_for_status=False
             ))
         except Exception as e:
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
-        
 
     def delete(self, filename: str) -> None:
         """
@@ -235,12 +242,12 @@ class Ipfs():
 
         try:
             self._make_request(
-                endpoint = "files/rm",
-                params = {
+                endpoint="files/rm",
+                params={
                     "arg": f"{IPFS_HOME}/{filename}",
                     "recursive": True
                 },
-                raise_for_status = False
+                raise_for_status=False
             )
         except Exception as e:
             print(e)
