@@ -21,4 +21,4 @@ def test_mkdir() -> None:
 
     # Cleanup: delete the directory
     ipfs.delete(directory_name)
-    
+

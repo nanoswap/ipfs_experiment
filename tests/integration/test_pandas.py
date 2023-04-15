@@ -1,5 +1,7 @@
 __package__ = "tests.unit"
+__package__ = "tests.integration"
 
+import unittest
 import pandas as pd
 import pytest
 from typing import List
@@ -8,7 +10,7 @@ from src.index import Index
 from protobuf.sample_pb2 import Example, Type
 import uuid
 
-class TestPandas:
+class TestPandas(unittest.TestCase):
 
     @staticmethod
     def generate_index(borrower, lender, loan, payment):
@@ -28,7 +30,6 @@ class TestPandas:
             )
         )
 
-    @pytest.fixture
     def sample_data(self):
 
         self.borrower_1 = str(uuid.uuid4())
@@ -54,7 +55,8 @@ class TestPandas:
             Store(TestPandas.generate_index(self.borrower_2, self.borrower_1, self.loan_3, self.payment_4), reader=self.payment_data_4),
         ]
 
-    def test_to_dataframe(self, sample_data):
+    def test_to_dataframe(self):
+        sample_data = self.sample_data()
         df = Store.to_dataframe(sample_data, protobuf_parsers={
             "content": lambda store: store.reader.content,
             "type": lambda store: store.reader.type,
