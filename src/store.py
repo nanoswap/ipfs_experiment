@@ -1,13 +1,17 @@
 from __future__ import annotations
+
+import errno
+import os
 from dataclasses import dataclass
 from types import FunctionType
 from typing import Dict, Iterator, List, Self
-from src.ipfs import Ipfs
+
 from google.protobuf.message import Message
-from src.index import Index
-import errno
-import os
+
 import pandas as pd
+
+from src.index import Index
+from src.ipfs import Ipfs
 
 
 @dataclass

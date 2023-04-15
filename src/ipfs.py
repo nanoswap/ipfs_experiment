@@ -1,10 +1,14 @@
+import json
+import os
 from dataclasses import dataclass
 from typing import List, Self
-import os
-import requests
-import json
+
 from multicodec import add_prefix
+
 from protobuf.sample_pb2 import Example
+
+import requests
+
 
 IPFS_HOME = "/data"
 

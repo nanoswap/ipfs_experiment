@@ -8,7 +8,7 @@ def load_long_description(filename: str) -> str:
 
 setup(
     name="ipfs-kvs",
-    version="0.0.1",
+    version="0.0.2",
     author="Nathaniel Schultz",
     author_email="nate@nanoswap.finance",
     description="IPFS Experiment",
@@ -25,5 +25,5 @@ setup(
     ],
     package_dir={'': "src"},
     packages=find_packages("src"),
-    python_requires=">=3.6"
+    python_requires=">=3.11"
 )
