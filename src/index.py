@@ -5,6 +5,20 @@ import json
 
 
 class Index():
+    """An object for storing a nested directory structure.
+
+    Use the `Store` class to read or write the data for an Index.
+
+    ### Convert a filename to an Index object
+    ```py
+        index = Index.from_filename("mydir/show_1/season_2/episode_6.mp4")
+    ```
+
+    ### Convert an Index object to a filename
+    ```py
+        filename = index.get_filename()
+    ```
+    """
     prefix: str
     index: Dict[str, UUID]
     size: int  # number of keys in this index (not including parent or subindex)  # noqa: E501
@@ -16,10 +30,10 @@ class Index():
             subindex: Index = None,
             prefix: str = None,
             size: int = None):
-        """
-            Index keys should be all one word lower case.
-            Index values should be UUIDs.
-            The prefix should only be on the root/parent index (not in subindex)  # noqa: E501
+        """Index Constructor.
+
+        Index keys should be all one word lower case.
+        Index values should be UUIDs.
         """
         self.prefix = prefix
         self.index = index
@@ -27,9 +41,25 @@ class Index():
         self.size = size if size else len(index.keys())
 
     def __str__(self) -> str:
+        """Convert an Index to a string with `str()`.
+
+        This will recursively parse the subindexes and
+        include them all in the response.
+
+        Returns:
+            str: The index object as a string
+        """
         return json.dumps(self.to_dict(), sort_keys=True, indent=4)
 
     def __eq__(self, other_index: Index) -> bool:
+        """Compare two Index objects with `==`.
+
+        Args:
+            other_index (Index): The other index to compare
+
+        Returns:
+            bool: Returns true if self == other_index
+        """
         result = \
             self.prefix == other_index.prefix and \
             self.size == other_index.size and \
@@ -38,6 +68,14 @@ class Index():
         return result
 
     def to_dict(self) -> dict:
+        """Convert the Index object to a dictionary.
+
+        This will recursively parse the subindexes and
+        include them all in the response.
+
+        Returns:
+            dict: The index object as a dict
+        """
         return {
             "prefix": self.prefix,
             "index": self.index,
@@ -45,9 +83,13 @@ class Index():
         }
 
     def matches(self, other_index: Index) -> bool:
-        """
-            Check if this index has a compatible index with another index.
-            Returns false if any self keys are not in the other index
+        """Check if this index has a compatible index with another index.
+
+        Args:
+            other_index (Index): The other index object to compare against
+
+        Returns:
+            bool: Returns false if any self keys are not in the other index
                 or if any values in self are not equal to the
                 corresponding value in the other index
         """
@@ -61,10 +103,22 @@ class Index():
         return True
 
     def is_partial(self) -> bool:
+        """Check if the index has less keys than expected.
+
+        Returns:
+            bool: Returns true if some keys are missing
+        """
         return self.size != len(self.index.keys())
 
     def get_metadata(self) -> Dict[str, UUID]:
-        """ Parse the subindex/filename data """
+        """Parse the subindex/filename data.
+
+        This will recursively parse the subindexes and
+        include them all in the response.
+
+        Returns:
+            Dict[str, UUID]: A flat map of (key: value)
+        """
         filename = self.get_filename()  # recursively get subindex data
         records = filename.split("/")
         if self.prefix:
@@ -78,7 +132,11 @@ class Index():
         return result
 
     def get_filename(self) -> str:
-        """ Convert this object to a filename """
+        """Convert this object to a filename.
+
+        Returns:
+            str: The filename for this Index
+        """
         result = ""
 
         # Add prefix
@@ -103,7 +161,21 @@ class Index():
 
     @staticmethod
     def from_filename(filename: str, has_prefix: bool = False) -> Index:
-        """ Convert a filename to an Index object """
+        """Convert a filename to an Index object.
+
+        Args:
+            filename (str): The filename to verify
+            has_prefix (bool, optional): Does the filename have a prefix?
+                Defaults to False.
+
+        Raises:
+            Exception: If the filename is unable to be parsed
+                an exception will be raised
+
+        Returns:
+            Index: The index object with data corresponding to
+                the input filename
+        """
         directories = [file for file in filename.split("/") if file]
 
         # Get prefix

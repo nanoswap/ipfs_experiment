@@ -6,7 +6,6 @@
       members:
         - __init__
         - read
-        - write
         - add
         - delete
         - to_dataframe

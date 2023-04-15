@@ -76,7 +76,7 @@ Create a tiered file structure based on IDs, ex:
 
 ## Query the multiple indexes
 Ex: get all deals with designer id "123"
-```
+```py
     from nanoswap.ipfskvs import Store, Index, Ipfs
     from deal_pb2 import Deal
 

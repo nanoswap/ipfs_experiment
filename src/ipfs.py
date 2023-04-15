@@ -11,24 +11,27 @@ IPFS_HOME = "/data"
 
 @dataclass
 class Ipfs():
-    """
-    ## IPFS Python Client
+    """IPFS Python Client.
 
     This client uses the ipfs rpc via http.
     The ipfs server or gateway is specified in the constructor.
 
-    ### Usage:
+    ### Usage
     For testing with a local ipfs node
-    ```
+    ```py
         import ipfs
         client = ipfs.Ipfs()  # defaults to http://127.0.0.1:5001/api/v0
         client.mkdir("my_dir")
         client.add("my_dir/my_file", b"my_contents")
     ```
 
-    ### References:
-    IPFS RPC documentation: https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-files-write
-    For more information about ipfs: https://docs.ipfs.tech/concepts/what-is-ipfs/#defining-ipfs
+    ### References
+
+    IPFS RPC documentation:
+        https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-files-write
+
+    For more information about ipfs:
+        https://docs.ipfs.tech/concepts/what-is-ipfs/#defining-ipfs
     """
     host: str
     port: int
@@ -39,8 +42,7 @@ class Ipfs():
             host: str = "http://127.0.0.1",
             port: int = 5001,
             version: str = "v0"):
-        """
-        Create a IPFS client.
+        """Create an IPFS client.
 
         Args:
             host (str, optional): IPFS server host or gateway host. Defaults to "http://127.0.0.1".  # noqa: E501
@@ -56,7 +58,19 @@ class Ipfs():
             endpoint: str,
             params: dict = None,
             files: dict = None,
-            raise_for_status: bool = True):
+            raise_for_status: bool = True) -> bytes:
+        """Make an http request for an IPFS RPC call.
+
+        Args:
+            endpoint (str): The IPFS RPC endpoint
+            params (dict, optional): The RPC params. Defaults to None.
+            files (dict, optional): The RPC files. Defaults to None.
+            raise_for_status (bool, optional): If true, raise any
+                exceptions that are caught. Defaults to True.
+
+        Returns:
+            bytes: The http response data
+        """
         url = f"{self.host}:{self.port}/api/{self.version}/{endpoint}"
         response = requests.post(url, params=params, files=files)
         if raise_for_status:
@@ -64,6 +78,17 @@ class Ipfs():
         return response.content
 
     def _dag_put(self, data: bytes) -> str:
+        """Call the dag/put endpoint.
+
+        Args:
+            data (bytes): The raw object data
+
+        Raises:
+            RuntimeError: An exception is raised for any RPC errors
+
+        Returns:
+            str: The RPC response
+        """
         try:
             response = self._make_request(
                 endpoint="dag/put",
@@ -83,6 +108,17 @@ class Ipfs():
             raise RuntimeError(e.response._content.decode()) from e
 
     def _dag_get(self, filename: str) -> str:
+        """Call the dag/get endpoint.
+
+        Args:
+            filename (str): The filename to get the dag for
+
+        Raises:
+            RuntimeError: An exception is raised for any RPC errors
+
+        Returns:
+            str: The RPC response
+        """
         try:
             response = self._make_request(
                 endpoint="dag/get",
@@ -98,13 +134,16 @@ class Ipfs():
             raise RuntimeError(e.response._content.decode()) from e
 
     def mkdir(self, directory_name: str, with_home: bool = True) -> None:
-        """
-        Create a directory in ipfs
+        """Create a directory in ipfs.
 
         Args:
             directory_name (str): The name of the directory to create
-        """
+            with_home (bool, optional): If true, include Ipfs.IPFS_HOME
+                as a directory prefix. Defaults to True.
 
+        Raises:
+            RuntimeError: An exception is raised for any RPC errors
+        """
         # Split the filename into its directory and basename components
         parts = os.path.split(directory_name)
 
@@ -124,8 +163,7 @@ class Ipfs():
             raise RuntimeError(e.response._content.decode()) from e
 
     def read(self, filename: str) -> bytes:
-        """
-        Read a file from ipfs
+        """Read a file from ipfs.
 
         Args:
             filename (str): The file to read
@@ -143,7 +181,16 @@ class Ipfs():
             raise RuntimeError(e.response._content.decode()) from e
 
     def write(self, filename: str, data: bytes) -> None:
+        """Overwrite file contents in ipfs.
 
+        Args:
+            filename (str): The filename to write to
+            data (bytes): The data to write
+
+        Raises:
+            NotImplementedError: This function is not implemented.
+                For now, just use `add` and `delete`
+        """
         raise NotImplementedError("For now, just use `add` and `delete`")
 
         try:
@@ -168,8 +215,8 @@ class Ipfs():
             raise RuntimeError(e.response._content.decode()) from e
 
     def add(self, filename: str, data: bytes) -> None:
-        """
-        Create a new file in ipfs.
+        """Create a new file in ipfs.
+
         This does not work for updating existing files.
 
         Args:
@@ -199,8 +246,7 @@ class Ipfs():
             raise RuntimeError(e.response._content.decode()) from e
 
     def does_file_exist(self, filename: str) -> bool:
-        """
-        Check if a file exists in ipfs
+        """Check if a file exists in ipfs.
 
         Args:
             filename (str): The file to check
@@ -222,15 +268,14 @@ class Ipfs():
 
             raise RuntimeError(e.response._content.decode()) from e
 
-    def stat(self, filename) -> List[str]:
-        """
-        List the ipfs files in a directory
+    def stat(self, filename) -> bytes:
+        """Call the files/stat endpoint.
 
         Args:
             prefix (str): The path to search on ipfs
 
         Returns:
-            List[str]: The list of filenames found at that location
+            bytes: The RPC response
         """
         try:
             return json.loads(self._make_request(
@@ -243,8 +288,7 @@ class Ipfs():
             raise RuntimeError(e.response._content.decode()) from e
 
     def list_files(self, prefix: str = "") -> List[str]:
-        """
-        List the ipfs files in a directory
+        """List the ipfs files in a directory.
 
         Args:
             prefix (str): The path to search on ipfs
@@ -263,13 +307,11 @@ class Ipfs():
             raise RuntimeError(e.response._content.decode()) from e
 
     def delete(self, filename: str) -> None:
-        """
-        Delete a file from ipfs
+        """Delete a file from ipfs.
 
         Args:
             filename (str): The filename to delete
         """
-
         try:
             self._make_request(
                 endpoint="files/rm",

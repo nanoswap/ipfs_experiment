@@ -12,11 +12,10 @@ import pandas as pd
 
 @dataclass
 class Store():
-    """
-    A utility to read/write protobuf data to ipfs.
+    """A utility to read/write protobuf data to ipfs.
 
-    ## Reading:
-    ```
+    Reading:
+    ```py
         from nanoswap.ipfskvs import Store, Index, Ipfs
         from myprotobuf_pb2 import MyProtobuf
 
@@ -29,8 +28,8 @@ class Store():
         print(store.reader)
     ```
 
-    ## Writing:
-    ```
+    Writing:
+    ```py
         from nanoswap.ipfskvs import Store, Index, Ipfs
         from myprotobuf_pb2 import MyProtobuf
 
@@ -42,8 +41,8 @@ class Store():
         store.add()
     ```
 
-    ## Write with multiple indexes
-    Create a tiered file structure based on IDs, ex:
+    Write with multiple indexes.
+    Create a tiered file structure based on IDs.
     ```
         ├── fashion/
             ├── designer_1.manufacturer_1
@@ -53,7 +52,7 @@ class Store():
                 ├── deal_1.data
                 ├── deal_2.data
     ```
-    ```
+    ```py
         from nanoswap.ipfskvs import Store, Index, Ipfs
         from deal_pb2 import Deal
 
@@ -74,9 +73,9 @@ class Store():
         store.add()
     ```
 
-    ## Query the multiple indexes
+    Query the multiple indexes:
     Ex: get all deals with designer id "123"
-    ```
+    ```py
         from nanoswap.ipfskvs import Store, Index, Ipfs
         from deal_pb2 import Deal
 
@@ -101,13 +100,29 @@ class Store():
             ipfs: Ipfs,
             writer: Message = None,
             reader: Message = None) -> None:
+        """Construct a Store object.
 
+        Args:
+            index (Index): An object representing the filepath
+            ipfs (Ipfs): The IPFS client
+            writer (Message, optional): The protobuf object with the
+                data to write to ipfs on `.write()`. Defaults to None.
+            reader (Message, optional): The protobuf object to populate
+                when reading the data from ipfs with `.read()`.
+                Defaults to None.
+        """
         self.index = index
         self.ipfs = ipfs
         self.writer = writer
         self.reader = reader
 
     def read(self) -> None:
+        """Read the data from ipfs into `self.reader`.
+
+        Raises:
+            FileNotFoundError: An exception is raised if the file is
+                not found on IPFS.
+        """
         filename = self.index.get_filename()
         result = self.ipfs.read(filename)
         if not result:
@@ -120,27 +135,30 @@ class Store():
         self.reader.ParseFromString(result)
 
     def write(self) -> None:
+        """Write the protobuf data from `self.writer` to IPFS."""
+        raise NotImplementedError("For now, just use `add` and `delete`")
         self.ipfs.write(
             self.index.get_filename(),
             self.writer.SerializeToString()
         )
 
     def add(self) -> None:
+        """Add the protobuf data from `self.writer` to IPFS."""
         self.ipfs.add(
             self.index.get_filename(),
             self.writer.SerializeToString()
         )
 
     def delete(self) -> None:
-        """ Only needed for local testing """
+        """Only needed for local testing."""
         self.ipfs.delete(self.index.get_filename())
 
     @staticmethod
     def to_dataframe(
             data: List[Store],
             protobuf_parsers: Dict[str, FunctionType]) -> pd.DataFrame:
-        """
-        Convert a list of Store objects to a pandas dataframe.
+        """Convert a list of Store objects to a pandas dataframe.
+
         The data for each Store must be read into memory beforehand;
             using `store.read()`
 
@@ -179,6 +197,16 @@ class Store():
 
     @staticmethod
     def query_indexes(query_index: Index, ipfs: Ipfs) -> List[Index]:
+        """Query ipfs based on the `query_index` param.
+
+        Args:
+            query_index (Index): The Index object to use for the query.
+            ipfs (Ipfs): The IPFS client.
+
+        Returns:
+            List[Index]: The matching filenames found in ipfs, loaded
+                into a list of Index objects
+        """
         result = []
 
         # list the files in the directory
@@ -209,6 +237,21 @@ class Store():
             query_index: Index,
             ipfs: Ipfs,
             reader: Message) -> Iterator[Store]:
+        """Query ipfs based on the `query_index` param.
+
+        Find the filenames matching the query_index.
+        Read the file contents from ipfs for each matching filename.
+        Parse the file contents into the reader protobuf object.
+
+        Args:
+            query_index (Index): The Index object to use for the query.
+            ipfs (Ipfs): The IPFS client.
+            reader (Message): _description_
+
+        Yields:
+            Iterator[Store]: The list of matching Store objects with
+                file content loaded into the `reader` attribute
+        """
         for response_index in Store.query_indexes(query_index, ipfs):
             store = Store(index=response_index, reader=reader, ipfs=ipfs)
             store.read()

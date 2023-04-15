@@ -22,4 +22,8 @@ def tests(session: nox.Session) -> None:
 def lint(session):
     session.install('flake8')
     session.install("-r", "requirements-dev.txt")
-    session.run('flake8', 'src', '--docstring-convention', 'google')
+    session.run(
+        'flake8', 'src',
+        '--docstring-convention', 'google',
+        '--ignore=D100'
+    )
