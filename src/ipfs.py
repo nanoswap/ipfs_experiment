@@ -38,7 +38,6 @@ class Ipfs():
                 },
                 raise_for_status = False
             )
-            print(response)
             result = json.loads(response.decode())
             return result["Cid"]["/"]
         except Exception as e:
@@ -55,7 +54,6 @@ class Ipfs():
                 },
                 raise_for_status = False
             )
-            print(response)
             return json.loads(response.decode())
         except Exception as e:
             print(e)
@@ -68,6 +66,14 @@ class Ipfs():
         Args:
             directory_name (str): The name of the directory to create
         """
+
+        # Split the filename into its directory and basename components
+        parts = os.path.split(directory_name)
+        
+        # If the directory part is not empty, create it recursively
+        if parts[0]:
+            self.mkdir(parts[0])
+            
         path = f"{IPFS_HOME}/{directory_name}" if with_home else f"/{directory_name}"
         try:
             self._make_request(
@@ -132,6 +138,13 @@ class Ipfs():
             filename (str): The filename for the uploaded data
             data (bytes): The data that will be written to the new file
         """
+        # Split the filename into its directory and basename components
+        parts = os.path.split(filename)
+        
+        # If the directory part is not empty, create it recursively
+        if parts[0]:
+            self.mkdir(parts[0])
+
         try:
             self._make_request(
                 endpoint = "add",
@@ -140,7 +153,7 @@ class Ipfs():
                     "raw-leaves": True
                 },
                 files = {
-                    filename: data
+                    'file': data
                 }
             )
         except Exception as e:

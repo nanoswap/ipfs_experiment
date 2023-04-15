@@ -72,7 +72,7 @@ class TestStore(unittest.TestCase):
             },
             prefix="loan"
         )
-        results = list(Store.query(query_index, Ipfs()))
+        results = list(Store.query(query_index = query_index, ipfs = Ipfs(), reader = Example()))
 
         # check that the result matches the original data
         self.assertEqual(len(results), 1)
@@ -107,7 +107,7 @@ class TestStore(unittest.TestCase):
             prefix="loan",
             size=2
         )
-        results = list(Store.query(query_index, Ipfs()))
+        results = list(Store.query(query_index, Ipfs(), Example()))
 
         # check that the result matches the original data
         self.assertEqual(len(results), 1)

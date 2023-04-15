@@ -42,7 +42,7 @@ class TestIpfs(unittest.TestCase):
                 "raw-leaves": True
             },
             files={
-                "test_file": b"test data"
+                "file": b"test data"
             }
         )
 
