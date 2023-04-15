@@ -1,9 +1,14 @@
-# src.store.Store
+# Store
 
 ::: src.store.Store
     handler: python
     options:
       members:
+        - __init__
+        - read
+        - write
+        - add
+        - delete
         - to_dataframe
         - query_indexes
         - query

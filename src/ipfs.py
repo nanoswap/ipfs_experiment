@@ -11,12 +11,42 @@ IPFS_HOME = "/data"
 
 @dataclass
 class Ipfs():
+    """
+    ## IPFS Python Client
+
+    This client uses the ipfs rpc via http.
+    The ipfs server or gateway is specified in the constructor.
+
+    ### Usage:
+    For testing with a local ipfs node
+    ```
+        import ipfs
+        client = ipfs.Ipfs()  # defaults to http://127.0.0.1:5001/api/v0
+        client.mkdir("my_dir")
+        client.add("my_dir/my_file", b"my_contents")
+    ```
+
+    ### References:
+    IPFS RPC documentation: https://docs.ipfs.tech/reference/kubo/rpc/#api-v0-files-write
+    For more information about ipfs: https://docs.ipfs.tech/concepts/what-is-ipfs/#defining-ipfs
+    """
+    host: str
+    port: int
+    version: str
 
     def __init__(
             self,
             host: str = "http://127.0.0.1",
             port: int = 5001,
             version: str = "v0"):
+        """
+        Create a IPFS client.
+
+        Args:
+            host (str, optional): IPFS server host or gateway host. Defaults to "http://127.0.0.1".  # noqa: E501
+            port (int, optional): IPFS port. Defaults to 5001.
+            version (str, optional): IPFS rpc version. Defaults to "v0".
+        """
         self.host = host
         self.port = port
         self.version = version

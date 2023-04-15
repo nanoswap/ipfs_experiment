@@ -1,9 +1,13 @@
-# src.ipfs.Ipfs
+# Ipfs
 
 ::: src.ipfs.Ipfs
     handler: python
     options:
       members:
+        - __init__
+        - _make_request
+        - _dag_put
+        - _dag_get
         - mkdir
         - read
         - add

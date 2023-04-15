@@ -1,9 +1,12 @@
-# src.index.Index
+# Index
 
 ::: src.index.Index
     handler: python
     options:
       members:
+        - __init__
+        - __str__
+        - __eq__
         - to_dict
         - matches
         - is_partial

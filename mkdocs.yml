@@ -1,10 +1,27 @@
 site_name: "ipfs-kvs"
 repo_url: https://github.com/nanoswap/ipfs-kvs
 issue_tracker: https://github.com/nanoswap/ipfs-kvs/issues
+edit_uri: blob/main/docs/
+
+nav:
+  - Home: 'index.md'
+  - Classes:
+      - 'Ipfs': 'classes_ipfs.md'
+      - 'Store': 'classes_store.md'
+      - 'Index': 'classes_index.md'
+  - About:
+      - 'License': 'LICENSE.md'
 
 theme:
-  name: "material"
+  name: "readthedocs"
+  features:
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate 
+
+extra:
+  annotate:
+    json: [.s2]
 
 plugins:
-- search
 - mkdocstrings

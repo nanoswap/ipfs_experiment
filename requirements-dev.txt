@@ -4,7 +4,11 @@ mock
 pytest
 flake8
 Faker
+
+# for documentation / mkdocs
 mkdocs
 mkdocs-material
 mkdocstrings
 mkdocstrings-python
+mkdocs-gitbook
+flake8-docstrings

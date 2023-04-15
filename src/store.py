@@ -4,13 +4,93 @@ from types import FunctionType
 from typing import Dict, Iterator, List
 from src.ipfs import Ipfs
 from google.protobuf.message import Message
-from src.file import File
 from src.index import Index
+import errno
+import os
 import pandas as pd
 
 
 @dataclass
-class Store(File):
+class Store():
+    """
+    A utility to read/write protobuf data to ipfs.
+
+    ## Reading:
+    ```
+        from nanoswap.ipfskvs import Store, Index, Ipfs
+        from myprotobuf_pb2 import MyProtobuf
+
+        store = Store(
+            Index.from_filename("myfile.txt"),
+            ipfs=Ipfs(host="127.0.0.1", port="5001"),
+            reader=MyProtobuf()
+        )
+        store.read()
+        print(store.reader)
+    ```
+
+    ## Writing:
+    ```
+        from nanoswap.ipfskvs import Store, Index, Ipfs
+        from myprotobuf_pb2 import MyProtobuf
+
+        store = Store(
+            Index.from_filename("myfile.txt"),
+            ipfs=Ipfs(host="127.0.0.1", port="5001"),
+            writer=MyProtobuf()
+        )
+        store.add()
+    ```
+
+    ## Write with multiple indexes
+    Create a tiered file structure based on IDs, ex:
+    ```
+        ├── fashion/
+            ├── designer_1.manufacturer_1
+            ├── designer_2.manufacturer_1
+                ├── deal_16.data
+            ├── designer_4.manufacturer_3
+                ├── deal_1.data
+                ├── deal_2.data
+    ```
+    ```
+        from nanoswap.ipfskvs import Store, Index, Ipfs
+        from deal_pb2 import Deal
+
+        index = Index(
+            prefix="fashion",
+            index={
+                "designer": str(uuid.uuid4()),
+                "manufacturer": str(uuid.uuid4())
+            }, subindex=Index(
+                index={
+                    "deal":  str(uuid.uuid4())
+                }
+            )
+        )
+
+        data = Deal(type=Type.BUZZ, content="fizz")
+        store = Store(index=index, ipfs=Ipfs(), writer=data)
+        store.add()
+    ```
+
+    ## Query the multiple indexes
+    Ex: get all deals with designer id "123"
+    ```
+        from nanoswap.ipfskvs import Store, Index, Ipfs
+        from deal_pb2 import Deal
+
+        query_index = Index(
+            prefix="fashion",
+            index={
+                "designer": "123"
+            }
+        )
+        reader = Deal()
+        store = Store.query(query_index, ipfs, reader)
+        print(reader)
+    ```
+    """
     index: Index
     writer: Message
     reader: Message
@@ -18,12 +98,42 @@ class Store(File):
     def __init__(
             self,
             index: Index,
+            ipfs: Ipfs,
             writer: Message = None,
             reader: Message = None) -> None:
+
         self.index = index
+        self.ipfs = ipfs
         self.writer = writer
         self.reader = reader
-        super().__init__()
+
+    def read(self) -> None:
+        filename = self.index.get_filename()
+        result = self.ipfs.read(filename)
+        if not result:
+            raise FileNotFoundError(
+                errno.ENOENT,
+                os.strerror(errno.ENOENT),
+                filename
+            )
+
+        self.reader.ParseFromString(result)
+
+    def write(self) -> None:
+        self.ipfs.write(
+            self.index.get_filename(),
+            self.writer.SerializeToString()
+        )
+
+    def add(self) -> None:
+        self.ipfs.add(
+            self.index.get_filename(),
+            self.writer.SerializeToString()
+        )
+
+    def delete(self) -> None:
+        """ Only needed for local testing """
+        self.ipfs.delete(self.index.get_filename())
 
     @staticmethod
     def to_dataframe(
