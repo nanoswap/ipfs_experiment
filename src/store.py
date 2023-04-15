@@ -66,14 +66,7 @@ class Store(File):
         # list the files in the directory
         path = query_index.get_filename()
         response = ipfs.list_files(path)
-        try:
-            filenames = [file['Name'] for file in response['Entries']]
-        except KeyError as e:
-            if "not a directory" in response["Message"].lower():
-                return [query_index]
-            else:
-                raise e
-
+        filenames = [file['Name'] for file in response['Entries']]
         for filename in filenames:
             # listing the same file twice indicates the base case
             if filename in path:
