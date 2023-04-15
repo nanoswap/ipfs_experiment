@@ -17,7 +17,8 @@ def tests(session: nox.Session) -> None:
     session.env["PYTHONPATH"] = "src"
     session.run("pytest", "--cov=src")
 
-# @nox.session
-# def lint(session):
-#     session.install('flake8')
-#     session.run('flake8')
+
+@nox.session
+def lint(session):
+    session.install('flake8')
+    session.run('flake8')
