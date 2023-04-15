@@ -210,6 +210,6 @@ class Store():
             ipfs: Ipfs,
             reader: Message) -> Iterator[Store]:
         for response_index in Store.query_indexes(query_index, ipfs):
-            store = Store(index=response_index, reader=reader)
+            store = Store(index=response_index, reader=reader, ipfs=ipfs)
             store.read()
             yield store

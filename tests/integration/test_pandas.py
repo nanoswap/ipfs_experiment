@@ -3,6 +3,7 @@ __package__ = "tests.integration"
 import unittest
 from src.store import Store
 from src.index import Index
+from src.ipfs import Ipfs
 from protobuf.sample_pb2 import Example, Type
 import uuid
 
@@ -53,7 +54,8 @@ class TestPandas(unittest.TestCase):
                     loan=self.loan_1,
                     payment=self.payment_1
                 ),
-                reader=self.payment_data_1
+                reader=self.payment_data_1,
+                ipfs=Ipfs()
             ),
             Store(
                 index=TestPandas.generate_index(
@@ -62,7 +64,8 @@ class TestPandas(unittest.TestCase):
                     loan=self.loan_1,
                     payment=self.payment_2
                 ),
-                reader=self.payment_data_2
+                reader=self.payment_data_2,
+                ipfs=Ipfs()
             ),
             Store(
                 index=TestPandas.generate_index(
@@ -71,7 +74,8 @@ class TestPandas(unittest.TestCase):
                     loan=self.loan_2,
                     payment=self.payment_3
                 ),
-                reader=self.payment_data_3
+                reader=self.payment_data_3,
+                ipfs=Ipfs()
             ),
             Store(
                 index=TestPandas.generate_index(
@@ -80,7 +84,8 @@ class TestPandas(unittest.TestCase):
                     loan=self.loan_3,
                     payment=self.payment_4
                 ),
-                reader=self.payment_data_4
+                reader=self.payment_data_4,
+                ipfs=Ipfs()
             ),
         ]
 

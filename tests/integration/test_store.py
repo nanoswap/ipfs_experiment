@@ -36,11 +36,11 @@ class TestStore(unittest.TestCase):
                 )
             )
         )
-        store = Store(index=index, writer=data)
+        store = Store(index=index, writer=data, ipfs=Ipfs())
         store.add()
 
         # read stored data and check equality
-        store2 = Store(index=index, reader=Example())
+        store2 = Store(index=index, reader=Example(), ipfs=Ipfs())
         store2.read()
         self.assertEqual(store2.reader, data)
 
@@ -62,7 +62,7 @@ class TestStore(unittest.TestCase):
                 )
             )
         )
-        store = Store(index=index, writer=data)
+        store = Store(index=index, writer=data, ipfs=Ipfs())
         store.add()
 
         # query for data by borrower and lender
@@ -103,7 +103,7 @@ class TestStore(unittest.TestCase):
                 )
             )
         )
-        store = Store(index=index, writer=data)
+        store = Store(index=index, writer=data, ipfs=Ipfs())
         store.add()
 
         # query for data by borrower only
@@ -114,7 +114,7 @@ class TestStore(unittest.TestCase):
             prefix="loan",
             size=2
         )
-        results = list(Store.query(query_index, Ipfs(), Example()))
+        results = list(Store.query(query_index, ipfs=Ipfs(), reader=Example()))
 
         # check that the result matches the original data
         self.assertEqual(len(results), 1)
