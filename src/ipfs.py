@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Self
 import os
 import requests
 import json
@@ -38,10 +38,10 @@ class Ipfs():
     version: str
 
     def __init__(
-            self,
+            self: Self,
             host: str = "http://127.0.0.1",
             port: int = 5001,
-            version: str = "v0"):
+            version: str = "v0") -> None:
         """Create an IPFS client.
 
         Args:
@@ -54,7 +54,7 @@ class Ipfs():
         self.version = version
 
     def _make_request(
-            self,
+            self: Self,
             endpoint: str,
             params: dict = None,
             files: dict = None,
@@ -77,7 +77,7 @@ class Ipfs():
             response.raise_for_status()
         return response.content
 
-    def _dag_put(self, data: bytes) -> str:
+    def _dag_put(self: Self, data: bytes) -> str:
         """Call the dag/put endpoint.
 
         Args:
@@ -107,7 +107,7 @@ class Ipfs():
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
-    def _dag_get(self, filename: str) -> str:
+    def _dag_get(self: Self, filename: str) -> str:
         """Call the dag/get endpoint.
 
         Args:
@@ -133,7 +133,7 @@ class Ipfs():
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
-    def mkdir(self, directory_name: str, with_home: bool = True) -> None:
+    def mkdir(self: Self, directory_name: str, with_home: bool = True) -> None:
         """Create a directory in ipfs.
 
         Args:
@@ -162,7 +162,7 @@ class Ipfs():
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
-    def read(self, filename: str) -> bytes:
+    def read(self: Self, filename: str) -> bytes:
         """Read a file from ipfs.
 
         Args:
@@ -180,7 +180,7 @@ class Ipfs():
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
-    def write(self, filename: str, data: bytes) -> None:
+    def write(self: Self, filename: str, data: bytes) -> None:
         """Overwrite file contents in ipfs.
 
         Args:
@@ -214,7 +214,7 @@ class Ipfs():
         except requests.exceptions.HTTPError as e:
             raise RuntimeError(e.response._content.decode()) from e
 
-    def add(self, filename: str, data: bytes) -> None:
+    def add(self: Self, filename: str, data: bytes) -> None:
         """Create a new file in ipfs.
 
         This does not work for updating existing files.
@@ -245,7 +245,7 @@ class Ipfs():
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
-    def does_file_exist(self, filename: str) -> bool:
+    def does_file_exist(self: Self, filename: str) -> bool:
         """Check if a file exists in ipfs.
 
         Args:
@@ -268,11 +268,11 @@ class Ipfs():
 
             raise RuntimeError(e.response._content.decode()) from e
 
-    def stat(self, filename) -> bytes:
+    def stat(self: Self, filename: str) -> bytes:
         """Call the files/stat endpoint.
 
         Args:
-            prefix (str): The path to search on ipfs
+            filename (str): The path to search on ipfs
 
         Returns:
             bytes: The RPC response
@@ -287,7 +287,7 @@ class Ipfs():
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
-    def list_files(self, prefix: str = "") -> List[str]:
+    def list_files(self: Self, prefix: str = "") -> List[str]:
         """List the ipfs files in a directory.
 
         Args:
@@ -306,7 +306,7 @@ class Ipfs():
             print(e)
             raise RuntimeError(e.response._content.decode()) from e
 
-    def delete(self, filename: str) -> None:
+    def delete(self: Self, filename: str) -> None:
         """Delete a file from ipfs.
 
         Args:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from types import FunctionType
-from typing import Dict, Iterator, List
+from typing import Dict, Iterator, List, Self
 from src.ipfs import Ipfs
 from google.protobuf.message import Message
 from src.index import Index
@@ -95,7 +95,7 @@ class Store():
     reader: Message
 
     def __init__(
-            self,
+            self: Self,
             index: Index,
             ipfs: Ipfs,
             writer: Message = None,
@@ -116,7 +116,7 @@ class Store():
         self.writer = writer
         self.reader = reader
 
-    def read(self) -> None:
+    def read(self: Self) -> None:
         """Read the data from ipfs into `self.reader`.
 
         Raises:
@@ -134,7 +134,7 @@ class Store():
 
         self.reader.ParseFromString(result)
 
-    def write(self) -> None:
+    def write(self: Self) -> None:
         """Write the protobuf data from `self.writer` to IPFS."""
         raise NotImplementedError("For now, just use `add` and `delete`")
         self.ipfs.write(
@@ -142,14 +142,14 @@ class Store():
             self.writer.SerializeToString()
         )
 
-    def add(self) -> None:
+    def add(self: Self) -> None:
         """Add the protobuf data from `self.writer` to IPFS."""
         self.ipfs.add(
             self.index.get_filename(),
             self.writer.SerializeToString()
         )
 
-    def delete(self) -> None:
+    def delete(self: Self) -> None:
         """Only needed for local testing."""
         self.ipfs.delete(self.index.get_filename())
 

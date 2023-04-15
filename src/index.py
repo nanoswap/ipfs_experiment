@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Dict
+from typing import Dict, Self
 from uuid import UUID
 import json
 
@@ -25,11 +25,11 @@ class Index():
     subindex: Index
 
     def __init__(
-            self,
+            self: Self,
             index: Dict[str, UUID],
             subindex: Index = None,
             prefix: str = None,
-            size: int = None):
+            size: int = None) -> None:
         """Index Constructor.
 
         Index keys should be all one word lower case.
@@ -40,7 +40,7 @@ class Index():
         self.subindex = subindex
         self.size = size if size else len(index.keys())
 
-    def __str__(self) -> str:
+    def __str__(self: Self) -> str:
         """Convert an Index to a string with `str()`.
 
         This will recursively parse the subindexes and
@@ -51,7 +51,7 @@ class Index():
         """
         return json.dumps(self.to_dict(), sort_keys=True, indent=4)
 
-    def __eq__(self, other_index: Index) -> bool:
+    def __eq__(self: Self, other_index: Index) -> bool:
         """Compare two Index objects with `==`.
 
         Args:
@@ -67,7 +67,7 @@ class Index():
             self.index == other_index.index
         return result
 
-    def to_dict(self) -> dict:
+    def to_dict(self: Self) -> dict:
         """Convert the Index object to a dictionary.
 
         This will recursively parse the subindexes and
@@ -82,7 +82,7 @@ class Index():
             "subindex": self.subindex.to_dict() if self.subindex else None
         }
 
-    def matches(self, other_index: Index) -> bool:
+    def matches(self: Self, other_index: Index) -> bool:
         """Check if this index has a compatible index with another index.
 
         Args:
@@ -102,7 +102,7 @@ class Index():
 
         return True
 
-    def is_partial(self) -> bool:
+    def is_partial(self: Self) -> bool:
         """Check if the index has less keys than expected.
 
         Returns:
@@ -110,7 +110,7 @@ class Index():
         """
         return self.size != len(self.index.keys())
 
-    def get_metadata(self) -> Dict[str, UUID]:
+    def get_metadata(self: Self) -> Dict[str, UUID]:
         """Parse the subindex/filename data.
 
         This will recursively parse the subindexes and
@@ -131,7 +131,7 @@ class Index():
 
         return result
 
-    def get_filename(self) -> str:
+    def get_filename(self: Self) -> str:
         """Convert this object to a filename.
 
         Returns:

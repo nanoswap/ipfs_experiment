@@ -3,6 +3,8 @@ hypothesis
 mock
 pytest
 flake8
+flake8-docstrings
+flake8-annotations
 Faker
 
 # for documentation / mkdocs
@@ -11,4 +13,3 @@ mkdocs-material
 mkdocstrings
 mkdocstrings-python
 mkdocs-gitbook
-flake8-docstrings
